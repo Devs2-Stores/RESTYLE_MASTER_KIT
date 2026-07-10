@@ -1,0 +1,16 @@
+{
+  "flows": [
+    {
+      "name": "collection-flow",
+      "path": "/collections/REPLACE-WITH-COLLECTION-HANDLE",
+      "viewports": [375, 1440],
+      "steps": [
+        { "waitFor": "REPLACE .collection-title selector", "state": "visible" },
+        { "click": "REPLACE .filter-toggle selector" },
+        { "waitFor": "REPLACE .filter-panel.is-open selector" },
+        { "click": "REPLACE .sort-select selector" },
+        { "waitFor": "REPLACE .product-card selector" }
+      ]
+    }
+  ]
+}

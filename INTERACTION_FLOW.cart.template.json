@@ -1,0 +1,14 @@
+{
+  "flows": [
+    {
+      "name": "cart-flow",
+      "path": "/cart",
+      "viewports": [375, 1440],
+      "steps": [
+        { "waitFor": "REPLACE .cart-items selector", "state": "visible" },
+        { "fill": "REPLACE .cart-note textarea selector", "value": "Ghi chu don hang test" },
+        { "waitFor": "REPLACE .checkout-btn selector", "state": "visible" }
+      ]
+    }
+  ]
+}

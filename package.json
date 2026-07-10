@@ -1,0 +1,38 @@
+{
+  "name": "haravan-restyle-master-kit",
+  "version": "2.4.2",
+  "private": true,
+  "description": "Canonical helper scripts for Haravan theme restyle workflow.",
+  "type": "commonjs",
+  "scripts": {
+    "qa": "node qa_restyle_check.js",
+    "qa:flow": "node qa_restyle_check.js --flow INTERACTION_FLOW.template.json",
+    "setup": "npm install",
+    "preflight": "node run_preflight.js",
+    "guard:final": "node workflow_final_guard.js",
+    "audit:content": "node liquid_content_audit.js",
+    "audit:settings-boundary": "node settings_boundary_audit.js",
+    "audit:css-tokens": "node css_token_audit.js",
+    "audit:restyle": "node audit_restyle.js",
+    "stitch:consume": "node stitch_consume.js",
+    "token:extract": "node design_token_extract.js",
+    "section:scaffold": "node section_scaffold.js",
+    "asset:plan": "node asset_pipeline.js",
+    "orphan:sweep": "node orphan_sweep.js",
+    "visual:diff": "node visual_diff.js",
+    "a11y:deep": "node a11y_deep.js",
+    "stitch:full": "node stitch_pipeline_runner.js",
+    "perf:check": "node perf_check.js",
+    "theme:push": "node theme_push.js",
+    "final:capture": "node final_showcase_capture.js",
+    "final:export": "node final_theme_export.js",
+    "test": "node test/run_tests.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "axe-core": "^4.10.0",
+    "puppeteer": "^22.0.0"
+  }
+}

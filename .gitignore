@@ -1,0 +1,9 @@
+﻿node_modules/
+scratch/
+output/
+artifacts/
+final-showcase/
+*.bak
+*.tmp.png
+NUL
+*.log

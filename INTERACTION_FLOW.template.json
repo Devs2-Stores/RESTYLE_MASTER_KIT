@@ -1,0 +1,16 @@
+{
+  "flows": [
+    {
+      "name": "generic-smoke-flow",
+      "path": "/",
+      "viewports": [375, 1440],
+      "steps": [
+        { "waitFor": "REPLACE .header-logo selector", "state": "visible" },
+        { "click": "REPLACE .mobile-menu-toggle selector" },
+        { "waitFor": "REPLACE .mobile-menu.is-open selector" },
+        { "click": "REPLACE .mobile-menu-close selector" },
+        { "waitFor": "REPLACE .mobile-menu.is-open selector", "state": "hidden" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+﻿<div class="page-width">
+  {% for product in collection.products %}
+    <div class="product-card">
+      <img src="{{ product.featured_image | img_url }}">
+      <p>{{ product.title }}</p>
+    </div>
+  {% endfor %}
+</div>

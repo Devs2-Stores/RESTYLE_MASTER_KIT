@@ -1,0 +1,21 @@
+﻿.page-width {
+  max-width: var(--page-width, 1200px);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.header {
+  background: var(--color-bg);
+  padding: 16px 24px;
+}
+
+.product-card {
+  border-radius: var(--radius-card, 8px);
+}
+
+.add-to-cart-btn {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 16px;
+  padding: 12px 24px;
+}

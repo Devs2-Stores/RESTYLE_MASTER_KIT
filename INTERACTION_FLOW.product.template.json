@@ -1,0 +1,15 @@
+{
+  "flows": [
+    {
+      "name": "product-flow",
+      "path": "/products/REPLACE-WITH-PRODUCT-HANDLE",
+      "viewports": [375, 1440],
+      "steps": [
+        { "waitFor": "REPLACE .product-title selector", "state": "visible" },
+        { "click": "REPLACE .variant-option selector" },
+        { "click": "REPLACE .add-to-cart-btn selector" },
+        { "waitFor": "REPLACE .cart-count or .cart-drawer selector" }
+      ]
+    }
+  ]
+}

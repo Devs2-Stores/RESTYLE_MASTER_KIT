@@ -1,0 +1,13 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+</head>
+<body>
+  {% include 'header' %}
+  {{ content_for_layout }}
+  {% include 'footer' %}
+  {{ 'theme.js' | asset_url | script_tag }}
+</body>
+</html>

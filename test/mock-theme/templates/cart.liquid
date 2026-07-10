@@ -1,0 +1,9 @@
+﻿<div class="cart-page">
+  {% for item in cart.items %}
+    <div class="cart-item">
+      <p>{{ item.title }}</p>
+      <p>{{ item.price | money }}</p>
+    </div>
+  {% endfor %}
+  <a href="/checkout" class="checkout-btn">Thanh toán</a>
+</div>

@@ -1,0 +1,94 @@
+{
+  "_doc": "Copy thanh scratch/asset-plan.json roi dien thuc te. source: existing | brand-provided | demo-image-assets | bfl | iconify | flaticon | freepik | magnific.",
+  "_fidelity": {
+    "screen": "home",
+    "merge_status": "pending",
+    "allowed_deviations": [],
+    "notes": [
+      "Every asset should map back to a Stitch section and slot.",
+      "Use the ledger to record any asset deviation, crop compromise, or fallback source."
+    ]
+  },
+  "assets": [
+    {
+      "key": "hero-banner-desktop",
+      "stitchSection": "home/hero",
+      "slot": "hero background desktop",
+      "required": true,
+      "out": "assets/hero-banner-desktop.jpg",
+      "w": 1920,
+      "h": 720,
+      "source": "demo-image-assets",
+      "prompt": "Editorial cosmetic counter, soft beige tones, marble surface, no text, natural light, ratio 16:6",
+      "ratio_strict": true
+    },
+    {
+      "key": "hero-banner-mobile",
+      "stitchSection": "home/hero",
+      "slot": "hero background mobile",
+      "required": true,
+      "out": "assets/hero-banner-mobile.jpg",
+      "w": 750,
+      "h": 900,
+      "source": "demo-image-assets",
+      "prompt": "Same cosmetic counter, mobile portrait crop, ratio 5:6"
+    },
+    {
+      "key": "logo",
+      "stitchSection": "global/header",
+      "slot": "brand logo",
+      "required": true,
+      "out": "assets/logo.svg",
+      "source": "brand-provided"
+    },
+    {
+      "key": "icon-cart",
+      "stitchSection": "global/header",
+      "slot": "cart icon",
+      "required": true,
+      "out": "assets/icon-cart.svg",
+      "source": "iconify",
+      "name": "fa6-solid:cart-shopping"
+    },
+    {
+      "key": "icon-search",
+      "stitchSection": "global/header",
+      "slot": "search icon",
+      "required": true,
+      "out": "assets/icon-search.svg",
+      "source": "iconify",
+      "name": "fa6-solid:magnifying-glass"
+    },
+    {
+      "key": "lifestyle-1",
+      "stitchSection": "home/hero",
+      "slot": "supporting lifestyle image",
+      "required": false,
+      "out": "assets/lifestyle-1.jpg",
+      "w": 1200,
+      "h": 1200,
+      "source": "demo-image-assets",
+      "prompt": "Hands holding skincare bottle in soft daylight, no face, no text, ratio 1:1"
+    },
+    {
+      "key": "category-skincare",
+      "stitchSection": "home/collections",
+      "slot": "collection card image",
+      "required": true,
+      "out": "assets/category-skincare.jpg",
+      "w": 800,
+      "h": 1000,
+      "source": "demo-image-assets",
+      "prompt": "Skincare flat lay, beige background, three product silhouettes, no text, ratio 4:5"
+    },
+    {
+      "key": "placeholder-product",
+      "stitchSection": "shared/product-card",
+      "slot": "fallback product image",
+      "required": false,
+      "out": "assets/placeholder-product.jpg",
+      "source": "existing",
+      "from": "old-theme/placeholder.jpg"
+    }
+  ]
+}

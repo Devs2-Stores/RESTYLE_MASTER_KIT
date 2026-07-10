@@ -1,0 +1,69 @@
+{
+  "_doc": "Copy thanh scratch/section-config.json roi dien thuc te theo Stitch screen. Moi section gen 1 file templates/sections/<name>.liquid; neu co blocks thi gen them snippets/section-<name>-<type>.liquid.",
+  "_fidelity": {
+    "screen": "home",
+    "merge_status": "pending",
+    "allowed_deviations": [],
+    "notes": [
+      "Keep stitchSource, stitchSectionIndex, requiredAssets, and copyBlocks aligned with stitch-fidelity.json.",
+      "Record approved deviations in the ledger before implementation."
+    ]
+  },
+  "sections": [
+    {
+      "name": "hero-banner",
+      "label": "Hero Banner",
+      "stitchSource": "home/hero",
+      "stitchSectionIndex": 1,
+      "requiredDynamicGroup": "hero",
+      "requiredAssets": ["image"],
+      "copyBlocks": ["heading", "subheading", "cta_text"],
+      "settings": [
+        { "id": "heading", "type": "text", "label": "Heading", "heading": true },
+        { "id": "subheading", "type": "textarea", "label": "Subheading" },
+        { "id": "image", "type": "image_picker", "label": "Background image" },
+        { "id": "cta_text", "type": "text", "label": "CTA text", "default": "Khám phá ngay" },
+        { "id": "cta_url", "type": "url", "label": "CTA URL" }
+      ],
+      "presets": [{ "name": "Hero default", "category": "Home" }]
+    },
+    {
+      "name": "featured-collections",
+      "label": "Featured Collections",
+      "stitchSource": "home/collections",
+      "stitchSectionIndex": 2,
+      "requiredDynamicGroup": "collection-group",
+      "requiredAssets": ["collection-card.image"],
+      "copyBlocks": ["heading", "collection-card.heading"],
+      "settings": [
+        { "id": "heading", "type": "text", "label": "Section heading", "heading": true }
+      ],
+      "blocks": [
+        {
+          "type": "collection-card",
+          "name": "Collection card",
+          "settings": [
+            { "id": "image", "type": "image_picker", "label": "Image" },
+            { "id": "heading", "type": "text", "label": "Heading", "heading": true },
+            { "id": "url", "type": "url", "label": "Link" }
+          ]
+        }
+      ],
+      "presets": [{ "name": "3 collections", "category": "Home" }]
+    },
+    {
+      "name": "bestseller-grid",
+      "label": "Bestseller grid",
+      "stitchSource": "home/bestseller",
+      "stitchSectionIndex": 3,
+      "requiredDynamicGroup": "product-grid",
+      "requiredAssets": [],
+      "copyBlocks": ["heading"],
+      "settings": [
+        { "id": "heading", "type": "text", "label": "Section heading", "heading": true },
+        { "id": "collection", "type": "collection", "label": "Collection source" }
+      ],
+      "presets": [{ "name": "Bestseller", "category": "Home" }]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Browser Fixture Flow</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 24px; }
+    .stack { display: grid; gap: 12px; max-width: 420px; }
+    #result { display: none; color: #0a7b43; }
+  </style>
+</head>
+<body>
+  <main class="stack">
+    <h1>Flow fixture</h1>
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="email@example.com">
+    <button id="submit" type="button">Gửi</button>
+    <p id="result">Đã gửi thành công</p>
+  </main>
+  <script>
+    document.getElementById('submit').addEventListener('click', () => {
+      const value = document.getElementById('email').value;
+      if (value) document.getElementById('result').style.display = 'block';
+      console.error('fixture-console-error');
+    });
+  </script>
+</body>
+</html>
