@@ -171,10 +171,10 @@ function createFinalGuardFixture(root, mode) {
     ? '<!doctype html><html><body><h1>Bad</h1></body></html>'
     : '<h1>Ivory Gem Theme</h1><p>Mô tả storefront bán hàng theo đúng định hướng thương hiệu, nhấn vào lợi ích, niềm tin và bố cục đã được restyle từ Stitch.</p><ul><li>Layout trung thành với design</li><li>Theme-native cho Haravan</li><li>Ready for editor fragment paste</li></ul><p>Phần mô tả này đủ dài để vượt ngưỡng tối thiểu và chứng minh đây là fragment đã được điền thật, không phải placeholder.</p>';
   writeText(path.join(showcase, 'THEME_DESCRIPTION.html'), description);
-  if (mode !== 'missing-artifact') writePng(path.join(showcase, 'desktop-876x2000.png'), 876, 2000, () => [240, 235, 225, 255]);
-  writePng(path.join(showcase, 'mobile-276x480.png'), mode === 'wrong-dimensions' ? 320 : 276, mode === 'wrong-dimensions' ? 500 : 480, () => [232, 226, 216, 255]);
-  writePng(path.join(showcase, 'desktop-fullpage-raw.png'), 1200, 2400, () => [220, 214, 204, 255]);
-  writePng(path.join(showcase, 'mobile-fullpage-raw.png'), 375, 1400, () => [208, 202, 192, 255]);
+  if (mode !== 'missing-artifact') writePng(path.join(showcase, 'Trang chủ.png'), 876, 2000, () => [240, 235, 225, 255]);
+  writePng(path.join(showcase, 'Trang chủ-mobile.png'), mode === 'wrong-dimensions' ? 320 : 276, mode === 'wrong-dimensions' ? 500 : 480, () => [232, 226, 216, 255]);
+  writePng(path.join(showcase, 'Trang chủ-fullpage.png'), 1200, 2400, () => [220, 214, 204, 255]);
+  writePng(path.join(showcase, 'Trang chủ-mobile-fullpage.png'), 375, 1400, () => [208, 202, 192, 255]);
 }
 
 // 11. Audit scripts can run standalone (no BOM/shebang issues)
@@ -186,6 +186,10 @@ const liquidBad = runScript('liquid_content_audit.js', ['--root', path.resolve(_
 check('integration: liquid_content_audit detects HARD_1280 in bad mock', /HARD_1280/.test(liquidBad.stdout));
 check('integration: liquid_content_audit detects HARDCODE_COLOR in bad mock', /HARDCODE_COLOR/.test(liquidBad.stdout));
 check('integration: liquid_content_audit detects ENGLISH_HARDCODE in bad mock', /ENGLISH_HARDCODE/.test(liquidBad.stdout));
+check('integration: liquid_content_audit detects SCSS_MIN_MAX in bad mock', /SCSS_MIN_MAX/.test(liquidBad.stdout));
+check('integration: liquid_content_audit detects STITCH_FILENAME in bad mock', /STITCH_FILENAME/.test(liquidBad.stdout));
+check('integration: liquid_content_audit detects WEBP_ASSET in bad mock', /WEBP_ASSET/.test(liquidBad.stdout));
+check('integration: liquid_content_audit detects WEBP_REF in bad mock', /WEBP_REF/.test(liquidBad.stdout));
 
 const settingsBad = runScript('settings_boundary_audit.js', ['--root', path.resolve(__dirname, 'mock-theme-bad'), '--dry-run']);
 check('integration: settings_boundary_audit.js spawns clean', settingsBad.status === 0 && !settingsBad.stderr.includes('SyntaxError'));
@@ -213,7 +217,7 @@ const helperFiles = ['lib/cli-args.js', 'lib/findings.js', 'lib/report.js', 'lib
 for (const helper of helperFiles) {
   check(`helper exists: ${helper}`, fs.existsSync(path.join(KIT_ROOT, helper)));
 }
-const jsFiles = ['liquid_content_audit.js', 'settings_boundary_audit.js', 'css_token_audit.js', 'qa_restyle_check.js', 'run_preflight.js', 'workflow_final_guard.js', 'final_showcase_capture.js', 'final_theme_export.js', 'audit_restyle.js', 'stitch_consume.js', 'asset_pipeline.js', 'orphan_sweep.js', 'visual_diff.js', 'theme_push.js', 'design_token_extract.js', 'section_scaffold.js', 'a11y_deep.js', 'perf_check.js', 'lib/theme-walk.js', 'lib/cli-args.js', 'lib/findings.js', 'lib/report.js', 'lib/path-utils.js', 'lib/image.js', 'test/run_tests.js'];
+const jsFiles = ['liquid_content_audit.js', 'settings_boundary_audit.js', 'css_token_audit.js', 'qa_restyle_check.js', 'run_preflight.js', 'workflow_final_guard.js', 'final_showcase_capture.js', 'final_feature_deck.js', 'final_theme_export.js', 'audit_restyle.js', 'stitch_consume.js', 'asset_pipeline.js', 'orphan_sweep.js', 'visual_diff.js', 'theme_push.js', 'design_token_extract.js', 'section_scaffold.js', 'a11y_deep.js', 'perf_check.js', 'lib/theme-walk.js', 'lib/cli-args.js', 'lib/findings.js', 'lib/report.js', 'lib/path-utils.js', 'lib/image.js', 'test/run_tests.js'];
 const bomFiles = jsFiles.filter((f) => {
   const b = fs.readFileSync(path.join(KIT_ROOT, f));
   return b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf;
@@ -455,6 +459,58 @@ const finalGuardPending = runScript('workflow_final_guard.js', ['--root', fgPend
 check('integration: workflow_final_guard fails pending ledger fixture', finalGuardPending.status !== 0 && /final gate not clear/.test(finalGuardPending.stderr));
 const finalGuardMissingValue = runScript('workflow_final_guard.js', ['--root']);
 check('integration: workflow_final_guard rejects missing root value', finalGuardMissingValue.status !== 0 && /Missing value for --root/.test(finalGuardMissingValue.stderr + finalGuardMissingValue.stdout));
+const finalGuardRequirePptx = runScript('workflow_final_guard.js', ['--root', fgPassRoot, '--require-pptx']);
+check('integration: workflow_final_guard --require-pptx fails without pptx', finalGuardRequirePptx.status !== 0 && /missing feature deck pptx/.test(finalGuardRequirePptx.stderr));
+writeText(path.join(fgPassRoot, 'final-showcase', 'demo-features.pptx'), 'PK' + String.fromCharCode(3,4) + 'fake-pptx');
+const finalGuardRequirePptxPass = runScript('workflow_final_guard.js', ['--root', fgPassRoot, '--require-pptx']);
+check('integration: workflow_final_guard --require-pptx passes when pptx present', finalGuardRequirePptxPass.status === 0);
+
+// 24a. final multi-template capture + feature deck scripts
+check('script exists: final_feature_deck.js', fs.existsSync(path.join(KIT_ROOT, 'final_feature_deck.js')));
+check('script exists: final_feature_capture.js', fs.existsSync(path.join(KIT_ROOT, 'final_feature_capture.js')));
+check('template exists: FEATURES.template.json', fs.existsSync(path.join(KIT_ROOT, 'FEATURES.template.json')));
+check('template exists: FEATURE_SHOTS.template.json', fs.existsSync(path.join(KIT_ROOT, 'FEATURE_SHOTS.template.json')));
+check('template exists: CAPTURE_PATHS.template.json', fs.existsSync(path.join(KIT_ROOT, 'CAPTURE_PATHS.template.json')));
+check('template exists: SKILL_IMPROVEMENT_LOG.template.md', fs.existsSync(path.join(KIT_ROOT, 'SKILL_IMPROVEMENT_LOG.template.md')));
+const stitchPromptDoc = fs.readFileSync(path.join(KIT_ROOT, 'STITCH_PROMPT.template.md'), 'utf8');
+check('STITCH_PROMPT: has GLOBAL RULES block', stitchPromptDoc.includes('GLOBAL RULES (BẮT BUỘC)'));
+check('STITCH_PROMPT: screen list covers new modals', /Swal Modal/.test(stitchPromptDoc) && /Sale Popup/.test(stitchPromptDoc) && /Notify Modal/.test(stitchPromptDoc) && /Livechat Modal/.test(stitchPromptDoc));
+check('STITCH_PROMPT: has SHELL SPEC anti-drift', /SHELL SPEC/.test(stitchPromptDoc));
+check('STITCH_PROMPT: has MOTION/INTERACTION SPEC', /MOTION\/INTERACTION SPEC/.test(stitchPromptDoc));
+const captureHelp = runScript('final_showcase_capture.js', ['--help']);
+check('integration: final_showcase_capture --help mentions all-templates', captureHelp.status === 0 && /all-templates/.test(captureHelp.stdout));
+check('integration: final_showcase_capture --help mentions mobile-pages', captureHelp.status === 0 && /mobile-pages/.test(captureHelp.stdout));
+const featureCaptureHelp = runScript('final_feature_capture.js', ['--help']);
+check('integration: final_feature_capture --help spawns clean', featureCaptureHelp.status === 0 && /FEATURE_SHOTS/.test(featureCaptureHelp.stdout));
+const capturePathsTemplate = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'CAPTURE_PATHS.template.json'), 'utf8'));
+const requiredCaptureKeys = ['home', 'collection', 'product', 'blog', 'article', 'page-default', 'page-custom', 'login', 'register'];
+check('CAPTURE_PATHS.template has required template keys', requiredCaptureKeys.every((k) => Object.prototype.hasOwnProperty.call(capturePathsTemplate, k)));
+const featuresTemplate = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'FEATURES.template.json'), 'utf8'));
+check('FEATURES.template has features array', Array.isArray(featuresTemplate.features) && featuresTemplate.features.length >= 1);
+check('FEATURES.template documents bullets', featuresTemplate.features.some((f) => Array.isArray(f.bullets)));
+const featureShotsTemplate = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'FEATURE_SHOTS.template.json'), 'utf8'));
+check('FEATURE_SHOTS.template has shots array', Array.isArray(featureShotsTemplate.shots) && featureShotsTemplate.shots.length >= 1);
+const deckHelp = runScript('final_feature_deck.js', ['--help']);
+check('integration: final_feature_deck --help spawns clean', deckHelp.status === 0 && !deckHelp.stderr.includes('SyntaxError'));
+const deckRoot = path.join(KIT_ROOT, 'test', '_tmp-feature-deck');
+const deckOut = path.join(deckRoot, 'final-showcase');
+ensureDir(deckOut);
+writePng(path.join(deckOut, 'Trang chủ.png'), 876, 2000, () => [20, 20, 20, 255]);
+writePng(path.join(deckOut, 'Trang chủ-fullpage.png'), 400, 800, () => [30, 30, 30, 255]);
+writeText(path.join(deckOut, 'FEATURES.json'), JSON.stringify({
+  brand: 'Demo Brand',
+  tagline: 'Deck smoke test',
+  coverSubtitle: 'Smoke cover',
+  sectionTitle: 'TÍNH NĂNG NỔI BẬT',
+  thankYou: 'Team Demo xin cảm ơn ạ.',
+  features: [
+    { title: 'Feature A', body: 'Body A long enough for slide copy.', bullets: ['One', 'Two'], image: 'Trang chủ.png' },
+    { title: 'Feature B', body: 'Body B', image: 'Trang chủ-fullpage.png' }
+  ]
+}, null, 2));
+const deckRun = runScript('final_feature_deck.js', ['--out', deckOut, '--brand', 'Demo Brand', '--file', 'demo-features.pptx']);
+check('integration: final_feature_deck writes pptx', deckRun.status === 0 && fs.existsSync(path.join(deckOut, 'demo-features.pptx')));
+check('integration: final_feature_deck reports feature count', /Features: 2/.test(deckRun.stdout));
 
 // 24b. visual_diff functional coverage
 const diffBeforeDir = path.join(KIT_ROOT, 'test', '_tmp-visual-before');
@@ -480,7 +536,7 @@ const diffBadThreshold = runScript('visual_diff.js', ['--before', diffBeforeDir,
 check('integration: visual_diff rejects invalid threshold', diffBadThreshold.status !== 0 && /Invalid numeric value for --threshold/.test(diffBadThreshold.stderr + diffBadThreshold.stdout));
 
 // Cleanup temp dirs
-for (const d of [badAssetPlanPath, symlinkRoot, symlinkOutside, symlinkPlanPath, svgRoot, svgPlanGood, svgPlanBad, svgPlanMissing, tmpExtract, scaffoldRoot, perfOut, qaOut, qaFlowPath, a11yOut, fgPassRoot, fgMissingRoot, fgWrongDimsRoot, fgInvalidDescRoot, fgPendingRoot, diffBeforeDir, diffAfterSameDir, diffAfterDifferentDir, diffAfterSizeDir, diffAfterCorruptDir, diffOutDir]) {
+for (const d of [badAssetPlanPath, symlinkRoot, symlinkOutside, symlinkPlanPath, svgRoot, svgPlanGood, svgPlanBad, svgPlanMissing, tmpExtract, scaffoldRoot, perfOut, qaOut, qaFlowPath, a11yOut, fgPassRoot, fgMissingRoot, fgWrongDimsRoot, fgInvalidDescRoot, fgPendingRoot, deckRoot, diffBeforeDir, diffAfterSameDir, diffAfterDifferentDir, diffAfterSizeDir, diffAfterCorruptDir, diffOutDir]) {
   try { fs.rmSync(d, { recursive: true, force: true }); } catch (_) {}
 }
 
@@ -490,9 +546,12 @@ check('package.json: has section:scaffold', Boolean(pkg.scripts['section:scaffol
 check('package.json: has a11y:deep', Boolean(pkg.scripts['a11y:deep']));
 check('package.json: has stitch:full', Boolean(pkg.scripts['stitch:full']));
 check('package.json: has perf:check', Boolean(pkg.scripts['perf:check']));
+check('package.json: has final:pptx', Boolean(pkg.scripts['final:pptx']));
+check('package.json: has final:capture', Boolean(pkg.scripts['final:capture']));
 
 // 22. axe-core declared in dependencies
 check('package.json: axe-core in dependencies', Boolean(pkg.dependencies && pkg.dependencies['axe-core']));
+check('package.json: pptxgenjs in dependencies', Boolean(pkg.dependencies && pkg.dependencies['pptxgenjs']));
 
 // 23. section-config.template.json valid
 const sectionConfig = JSON.parse(fs.readFileSync(path.join(KIT_ROOT, 'section-config.template.json'), 'utf8'));

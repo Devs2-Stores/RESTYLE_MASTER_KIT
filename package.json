@@ -1,6 +1,6 @@
 {
   "name": "haravan-restyle-master-kit",
-  "version": "2.4.2",
+  "version": "2.6.0",
   "private": true,
   "description": "Canonical helper scripts for Haravan theme restyle workflow.",
   "type": "commonjs",
@@ -25,6 +25,8 @@
     "perf:check": "node perf_check.js",
     "theme:push": "node theme_push.js",
     "final:capture": "node final_showcase_capture.js",
+    "final:feature-capture": "node final_feature_capture.js",
+    "final:pptx": "node final_feature_deck.js",
     "final:export": "node final_theme_export.js",
     "test": "node test/run_tests.js"
   },
@@ -33,6 +35,7 @@
   },
   "dependencies": {
     "axe-core": "^4.10.0",
+    "pptxgenjs": "^3.12.0",
     "puppeteer": "^22.0.0"
   }
 }

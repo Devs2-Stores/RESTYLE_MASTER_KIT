@@ -1,6 +1,6 @@
 ﻿# RESTYLE_MASTER_KIT
 
-**Version:** 2.4.2
+**Version:** 2.6.0
 
 Bộ khung canonical để chạy dự án Haravan theme restyle từ đầu đến cuối.
 Kit bao gồm workflow docs, audit scripts, QA automation, và final export tooling.
@@ -63,7 +63,9 @@ Chi tiết từng bước: xem `HARAVAN_THEME_RESTYLE_WORKFLOW.md`.
 | `visual_diff.js` | So sánh % pixel khác giữa baseline và preview | `npm run visual:diff -- --before <dir-or-url> --after <dir-or-url>` |
 | `workflow_final_guard.js` | Gate cuối trước handoff | `npm run guard:final -- --root <path>` |
 | `theme_push.js` | Wrapper Haravan CLI push (unpublished/live) | `npm run theme:push -- --root <path> [--target unpublished\|live]` |
-| `final_showcase_capture.js` | Chụp final desktop/mobile screenshot | `npm run final:capture -- --base <url>` |
+| `final_showcase_capture.js` | Chụp final home showcase + multi-template pages (pages/* desktop-only mặc định) | `npm run final:capture -- --base <url> --all-templates --paths-file CAPTURE_PATHS.json` |
+| `final_feature_capture.js` | Chụp desktop đúng vùng từng tính năng (selector/click/hover) cho PPTX | `npm run final:feature-capture -- --base <url> --out final-showcase --shots FEATURE_SHOTS.json` |
+| `final_feature_deck.js` | Build PPTX tính năng nổi bật từ FEATURES.json + screenshots | `npm run final:pptx -- --out <final-showcase>` |
 | `final_theme_export.js` | Export theme zip qua Haravan CLI | `npm run final:export -- --root <path>` |
 
 ### Chạy một entrypoint full-flow có checkpoint
@@ -162,14 +164,17 @@ Sau khi chạy `qa_restyle_check.js`, output trong `scratch/qa/`:
 
 Sau khi chạy final scripts, output trong `final-showcase/`:
 
-- `desktop-876x2000.png` — desktop screenshot đã crop
-- `mobile-276x480.png` — mobile screenshot đã crop
-- `desktop-fullpage-raw.png` — desktop fullpage gốc
-- `mobile-fullpage-raw.png` — mobile fullpage gốc
+- `Trang chủ.png` — home desktop crop 876×2000 (guard contract; legacy `desktop-876x2000.png` still accepted)
+- `Trang chủ-mobile.png` — home mobile crop 276×480 (legacy `mobile-276x480.png` still accepted)
+- `Trang chủ-fullpage.png` / `Trang chủ-mobile-fullpage.png` — home fullpage raw
+- `pages/Trang ….png` — multi-template captures with **Vietnamese labels** (e.g. `Trang chi tiết sản phẩm.png`; mobile optional `…-mobile.png` via `--mobile-pages`)
+- `features/*.png` — feature-region desktop shots (`final:feature-capture` + `FEATURE_SHOTS.json`)
+- `CAPTURE_MANIFEST.json` / `CAPTURE_PATHS.json` — path map + capture log
 - `THEME_DESCRIPTION.html` — HTML fragment sales-focused
+- `FEATURES.json` + `<brand>-features.pptx` — deck tính năng nổi bật (`final:pptx`)
 - `*.zip` — theme export (nếu dùng `final_theme_export.js`)
 
-`workflow_final_guard.js` sẽ block handoff nếu thiếu artifact, ảnh PNG hỏng/kích thước sai, hoặc nội dung `THEME_DESCRIPTION.html` chưa đủ chuẩn.
+`workflow_final_guard.js` block handoff nếu thiếu home PNG, PNG hỏng/kích thước sai, hoặc `THEME_DESCRIPTION.html` chưa chuẩn. Thêm `--require-pptx` / `--require-zip` khi handoff cần deck/zip.
 
 ---
 
@@ -206,9 +211,14 @@ npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample
 npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths / --capture
 
 # 11. Final
-npm run final:capture -- --base <preview-url>
+npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
+# Feature-region desktop shots for PPTX (not full-page crops)
+# Copy FEATURE_SHOTS.template.json → final-showcase/FEATURE_SHOTS.json and set real selectors
+npm run final:feature-capture -- --base <preview-url> --out final-showcase --shots final-showcase/FEATURE_SHOTS.json
+# Eyeball features/* ; fill FEATURES.json (title/body/bullets/image) from FEATURES.template.json
+npm run final:pptx -- --out final-showcase
 npm run final:export -- --root <theme>
-npm run guard:final -- --root <theme>
+npm run guard:final -- --root <theme> --require-pptx
 ```
 
 ---
@@ -226,6 +236,8 @@ npm run guard:final -- --root <theme>
 | `INTERACTION_FLOW.*.template.json` | Smoke test interaction sau restyle |
 | `asset-plan.template.json` | Khai báo asset cần generate trước khi code |
 | `THEME_DESCRIPTION.template.html` | Viết mô tả theme cho Haravan admin |
+| `CAPTURE_PATHS.template.json` | Map path multi-template cho `final:capture --all-templates` |
+| `FEATURES.template.json` | List tính năng nổi bật → `final:pptx` |
 
 ---
 

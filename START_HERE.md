@@ -1,10 +1,14 @@
 # Restyle Master Kit
 
-KIT_VERSION: 2.4.2
+KIT_VERSION: 2.6.0
 
 Đây là bộ khung canonical để bắt đầu một dự án Haravan theme mới.
 
+**Vị trí kit CỐ ĐỊNH**: `C:\Users\Admin\Desktop\RESTYLE_MASTER_KIT` (thiếu/hỏng → clone `git@github.com:Devs2-Stores/RESTYLE_MASTER_KIT.git` về đúng path đó). Kit là **READ-ONLY khi chạy project**: mọi artifact, workaround, tool install lưu vào thư mục làm việc (`scratch/`, `<theme>/deliverables/`); bug kit → ghi `SKILL_IMPROVEMENT_LOG.md`, chỉ sửa kit trong phiên maintenance riêng có approval.
+
 ## Bắt đầu chạy ngay
+
+**Nạp skill `/haravan` trước khi làm việc** (nếu agent có hệ skill Haravan) — kiến thức nền platform đi trước mọi thao tác.
 
 Khởi động project mới với agent? **Copy prompt từ `PROMPT.template.md`** — có sẵn 7 prompt mẫu (kickoff luồng A, resume, audit-led, single page, fix bug, final handoff, kit health check).
 
@@ -45,7 +49,8 @@ Nếu muốn đọc tài liệu trực tiếp:
 8. `HARAVAN_THEME_RESTYLE_WORKFLOW.md`
 9. `RESTYLE_PROGRESS_LEDGER.template.md`
 10. `RESTYLE_RETROSPECTIVE.template.md`
-11. `FLOW_AUTHORING.md`
+11. `SKILL_IMPROVEMENT_LOG.template.md` — log cải tiến kit/skill, điền suốt dự án
+12. `FLOW_AUTHORING.md`
 12. `qa_restyle_check.js`
 13. `final_showcase_capture.js`
 14. `final_theme_export.js`
@@ -92,7 +97,13 @@ Nếu muốn đọc tài liệu trực tiếp:
 - Không hardcode `1280px`; map qua `page-width`/container setting hoặc target 1920 nếu user yêu cầu.
 - Generated code từ AI/Stitch phải chuyển về theme-native Liquid/CSS/JS.
 - **Khi có Stitch design, bưng nguyên Stitch (section list, layout, copy, color, font, spacing, component, icon family). Mọi deviation phải có 1 trong 5 lý do hợp lệ ở `STITCH_FIDELITY.md` và ghi vào ledger.** Không được "thêm cho đẹp", "bỏ vì không thiết yếu", "đổi màu cho nổi", "đổi layout cho hiện đại".
+- **Template-first conversion khi có approved design**: dựng MARKUP MỚI 100% theo design, xóa markup cũ bị thay. Không đè CSS lên layout legacy, không giữ fallback/toggle quay về layout cũ. Feature/behavior cũ bảo tồn (bưng hook sang markup mới).
 - Layout mới theo approved design phải rebuild module sạch theo design 100%, không chồng CSS/HTML mới lên block cũ.
+- **CSS/JS viết vào file CÓ SẴN đúng template** (home → `index.*`, shell → `main.*`, blog → `blog.*`...). Không tạo file asset mới song song; file mới = deviation phải duyệt. Trong `.scss.*`: nesting OK, cấm `min()`/`max()` chữ thường (legacy compiler chết cả file).
+- **Naming theo brand theme**: 0 chữ "stitch"/tên generator trong tên file/ảnh/class/settings key ship ra.
+- **Asset jpg/png only — cấm webp**; ảnh generate/export nén qua sharp (q~80, đúng slot) trước khi vào `assets/`.
+- **Đơn vị REM-first**: rem cho type/spacing (px ÷ 16), em chỉ cho nội bộ component, px cho hairline/breakpoint; `html { font-size: 100% }`.
+- **Sửa thẳng file đích** — không tạo snippet wrapper include đúng 1 nơi.
 - Khi thay CSS/JS block mới, xóa block cũ đã orphan sau khi kiểm tra selector/dependency để tránh phình asset. Dùng `orphan_sweep.js` để liệt kê.
 - Khi CSS mới không ăn, kiểm tra source order/cascade/specificity trước: đặt block mới sau rule cũ hoặc xóa rule cũ đúng cách; không vá bằng `!important`/nested selector quá sâu nếu chưa xác minh nguyên nhân.
 - Ưu tiên class/biến global của theme như `page-width`, token màu/font/spacing, helper/card/snippet sẵn có.
@@ -117,10 +128,10 @@ Nếu muốn đọc tài liệu trực tiếp:
 
 Khi user yêu cầu final/showcase/theme description:
 
-- `final-showcase/desktop-876x2000.png`
-- `final-showcase/mobile-276x480.png`
-- `final-showcase/desktop-fullpage-raw.png`
-- `final-showcase/mobile-fullpage-raw.png`
+- `final-showcase/Trang chủ.png` (desktop 876×2000)
+- `final-showcase/Trang chủ-mobile.png` (276×480)
+- `final-showcase/Trang chủ-fullpage.png`
+- `final-showcase/Trang chủ-mobile-fullpage.png`
 - `final-showcase/THEME_DESCRIPTION.html`
 - `final-showcase/ivory-gem-final-theme.zip`
 
@@ -140,6 +151,6 @@ Khi user yêu cầu final/showcase/theme description:
 
 ## Chuyển sang dự án mới
 
-- Copy kit này ra một thư mục riêng ngoài project.
-- Không mang theo `scratch/`, `output/`, `node_modules/`, hay artifact tạm.
-- Chỉ giữ source theme, `final-showcase/`, và kit canonical.
+- Kit ở NGUYÊN vị trí cố định `C:\Users\Admin\Desktop\RESTYLE_MASTER_KIT` — KHÔNG copy kit vào project, không sửa kit khi chạy project.
+- Mọi thứ của dự án (theme, `scratch/`, `deliverables/`, `final-showcase/`) nằm trong thư mục làm việc của dự án đó; artifact tạm không được ghi vào kit.
+- Kết thúc dự án: review `<theme>/deliverables/SKILL_IMPROVEMENT_LOG.md` — entry nào đáng nâng cấp kit/skill thì đưa vào phiên maintenance riêng (có approval) để cập nhật kit + CHANGELOG.

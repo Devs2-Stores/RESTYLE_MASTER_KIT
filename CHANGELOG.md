@@ -1,5 +1,56 @@
 # Changelog
 
+## 2.6.0 - 2026-07-16
+
+Đồng bộ kit theo 15 feedback items của user (trước đây chỉ nằm trong skill layer — kit docs/prompts chưa mang các rule mới, nên chạy qua kit vẫn tái phạm).
+
+- **`STITCH_PROMPT.template.md`**: thêm mục **GLOBAL RULES (BẮT BUỘC)** — full screen list (mọi trang + account 5 màn + Quickview/Cart Sidebar/Menu Mobile/Compare/Wishlist/Smart search/Newsletter/TOC/Account Modal/Menu Dropdown Desktop/Megamenu Desktop + **Swal Modal/Sale Popup/Notify Modal/Livechat Modal** + mobile TỪNG trang), SHELL SPEC chống header/footer drift, MOTION/INTERACTION SPEC (hover/animation/slider/marquee/countdown/counter), font VN subset, tên màn EN/copy VN, set-position line, 1 prompt/screen; ASSET RULES ghi jpg/png only.
+- **`STITCH_FIDELITY.md`**: §1A template-first conversion doctrine (không restyle, không CSS overlay, không legacy fallback, feature/behavior bảo tồn, scope = GLOBAL RULES checklist); motion spec = bề mặt fidelity; §5B quy ước ship code (naming theo brand, no-wrapper, extend file asset sẵn có per-template, SCSS dialect + cấm min()/max(), REM-first, cấm webp, comment hygiene, 5 mechanical checks); anti-patterns mới (CSS overlay, legacy fallback hoarding, parallel asset file, wrapper 1 chỗ); acceptance gate thêm screen coverage + motion + mechanical checks.
+- **`liquid_content_audit.js`**: rule mới `SCSS_MIN_MAX` (blocker, scoped `.scss.*`), `STITCH_FILENAME` (blocker, quét tên MỌI file ship kể cả ảnh), `WEBP_ASSET` (blocker), `WEBP_REF` (warn). Tests + fixtures mock-theme-bad tương ứng.
+- **`RUN_GUIDE.md`**: A.9 nhúng doctrine + mechanical checks; pitfalls thêm 6 hàng (CSS overlay, file mới, min/max, naming, webp, wrapper); output contract thêm dòng Mechanical checks + Improvement log.
+- **`HARAVAN_THEME_RESTYLE_WORKFLOW.md`**: entry point thêm nạp `/haravan` trước + kit READ-ONLY; nguyên tắc chung thêm 7 rule mới; luồng C đổi thành Template-First Conversion; anti-patterns F thêm 6 mục; 0.12 thêm nghi thức improvement log.
+- **`FLOW_A.md`**: checklist section 12 mục (markup mới, hook feature, motion, REM, webp, naming, wrapper); 6 → **11 quy tắc cứng**.
+- **`START_HERE.md`**: vị trí kit CỐ ĐỊNH + READ-ONLY; nạp `/haravan` trước; quy tắc khóa mới; "Chuyển sang dự án mới" bỏ hướng dẫn copy kit (kit ở nguyên chỗ, project ở thư mục làm việc); thêm file 11.
+- **`PROMPT.template.md`**: prompt #0/#1 thêm constraint template-first / extend file sẵn / naming / webp / REM / improvement log / nạp `/haravan`.
+- **`SKILL_IMPROVEMENT_LOG.template.md`** (mới): log cải tiến kit/skill per-project — tag `[kit-bug|cli-gap|skill-gap|user-request|workaround|new-pitfall]`, surface tại mỗi STOP, review cuối dự án.
+- Version drift fix: package.json 2.5.3 ↔ START_HERE 2.5.1 ↔ README 2.5.1 → đồng bộ 2.6.0 (2 test version trước đó đang FAIL).
+- Skill sync: Claude skill → v2.4.0 (danh sách màn hình +4 modal, standing rules, khôi phục `post-restyle-qa-checklist.md` bị mất), port Codex + Copilot cập nhật theo.
+
+## 2.5.3 - 2026-07-15
+
+- **`final_theme_export.js`**: Haravan CLI `theme export` does **not** accept `--file` (v1.1.x). Script now runs bare `haravan theme export` in theme root, then copies newest zip → `--out/--file` with PK magic validation.
+- **`FINAL_SHOWCASE.md`**: export-only steps + pre-final UI traps pointer.
+- Skill `haravan-stitch-full-run`: new `references/post-restyle-qa-checklist.md` (Sass min-unit escape, long menu clip, product-card hover opacity trap, collection 4-col, PDP gallery, W3C red-only gate, export CLI). Wired into SKILL Phase 5 / STOP 3, `one-command-workflow`, `final-showcase-pptx`, checkpoint policy.
+- Project note (F1GENZ GenZ): handoff zip `final-showcase/F1GENZ-GenZ-final-theme.zip`.
+
+## 2.5.2 - 2026-07-15
+
+- **`FINAL_SHOWCASE.md`**: gold-standard final pack (widget tight crops, modal kill, merchant FEATURES copy, custom pages full-page, home mobile 276×480, PPTX margins).
+- **`scripts/final_feature_pack.example.js`**: production reference capture pack (stage canvas `#f3f4f6`, kill `#shop-modal-contact`, section/page taxonomy).
+- **`final_feature_deck.js`**: manual aspect-fit from PNG dimensions (no stretch); ≥0.5" slide margins + ≥0.35" frame pad.
+- **`final_showcase_capture.js`**: page PNGs use **readable Vietnamese names** (`Trang chi tiết sản phẩm.png`, not `product-desktop.png`); path-aware labels for about/store/contact/faq. Home guard files: `Trang chủ.png` / `Trang chủ-mobile.png` (legacy names still accepted by `workflow_final_guard.js`).
+- **`FEATURES.template.json`**: merchant-plain Vietnamese guidance; widget vs page capture notes.
+- **`RUN_GUIDE` A.15**: aligns with skill `final-showcase-pptx.md`.
+
+## 2.5.1 - 2026-07-15
+
+- **`final_feature_capture.js` + `npm run final:feature-capture`**: desktop-only feature-region screenshots (selector clip / click / hover) → `final-showcase/features/*.png` for PPTX accuracy. Template: `FEATURE_SHOTS.template.json`.
+- **`final_feature_deck.js`**: feature slides use longer left copy column + optional `bullets[]`; screenshot panel uses `contain` (no squash) with letterbox well instead of `cover`.
+- **`final_showcase_capture.js`**: multi-template `pages/*` defaults to **desktop only** (`--no-mobile-pages` default). Pass `--mobile-pages` when mobile page shots are needed. Home guard still writes both desktop + mobile crops.
+- Docs/tests: help flags, template presence, feature-capture script.
+
+## 2.5.0 - 2026-07-15
+
+- **`final_showcase_capture.js` multi-template**: besides the home 4-PNG guard contract, supports `--all-templates`, `--paths-file`, `--paths`, `--theme-id`, `--no-mobile-pages`. Extra templates write to `final-showcase/pages/{key}-{desktop,mobile}.png` + `CAPTURE_MANIFEST.json`. Default keys: home, collection, product, blog, article, page-default, page-custom, login, register.
+- **`CAPTURE_PATHS.template.json`**: seed map for real product/article/page-custom handles.
+- **`final_feature_deck.js` + `npm run final:pptx`**: build sales feature PPTX (cover → TÍNH NĂNG NỔI BẬT → 1 slide/feature → thank-you) from `FEATURES.json` + showcase screenshots. Dependency: `pptxgenjs`.
+- **`FEATURES.template.json`**: brand + feature list template (title/body/image).
+- **`workflow_final_guard.js`**: optional `--require-pptx` checks for `*.pptx` in final-showcase.
+- Docs: `RUN_GUIDE` A.15, `FLOW_A` final step, `PROMPT.template` final handoff, README scripts/quick final.
+- Skill `haravan-stitch-full-run` Phase 5: multi-template capture + feature PPTX before STOP 3 / export.
+- Tests: capture help + path/feature templates, deck smoke write, guard `--require-pptx`, package scripts/deps.
+- Bump version 2.4.2 → 2.5.0.
+
 ## 2.4.2 - 2026-06-12
 
 - **`PROMPT.template.md`** — 7 prompt mẫu copy-paste cho agent (Codex/Claude/Cursor/Kiro):

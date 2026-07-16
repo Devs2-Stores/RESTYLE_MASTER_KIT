@@ -156,15 +156,20 @@ Thứ tự triển khai:
 ```
 
 **Checklist mỗi section**:
+- [ ] MARKUP MỚI theo Stitch — không đè CSS lên DOM legacy; code cũ bị thay đã xóa, không để fallback layout cũ.
 - [ ] Layout grid khớp Stitch (số col, width ratio).
 - [ ] Copy text lấy đúng từ Stitch (Việt hóa nếu Stitch tiếng Anh).
-- [ ] Color/font dùng `var(--*)`, không hex lạc.
-- [ ] Image slot đúng ratio, có `loading="lazy"`, có `alt`.
-- [ ] CSS scoped theo class module, không global.
+- [ ] Color/font dùng `var(--*)`, không hex lạc; đơn vị REM-first (px ÷ 16).
+- [ ] Image slot đúng ratio, có `loading="lazy"`, có `alt`; ảnh jpg/png — không webp.
+- [ ] CSS/JS viết vào file CÓ SẴN đúng template (`index.*`/`main.*`/`blog.*`/...), giữ dialect `.scss.*`, không `min()`/`max()` chữ thường.
+- [ ] Sửa thẳng file đích — không snippet wrapper include 1 chỗ.
+- [ ] Tên file/class/ảnh theo brand theme — không có chữ "stitch".
+- [ ] Hook feature cũ (AJAX cart, slider, quickview, data-attr JS...) đã bưng sang markup mới.
+- [ ] Motion spec của section (hover/animation/slider/marquee/countdown/counter) đã implement bằng lib sẵn có của theme.
 - [ ] Không còn Tailwind class, CDN, placeholder Stitch.
 - [ ] Deviation nếu có → đã ghi ledger.
 
-**→ Gate per section**: eyeball compare với Stitch. Lệch không có lý do → dừng, hỏi user.
+**→ Gate per section**: eyeball compare với Stitch + 5 mechanical checks (STITCH_FIDELITY.md §5B) PASS. Lệch không có lý do → dừng, hỏi user.
 
 ---
 
@@ -253,28 +258,37 @@ npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths /
 
 ### A.15 · Final + Guard
 ```powershell
-# Chụp final (scroll, lazy-load, popup dismiss tự động)
-npm run final:capture -- --base <preview-url>
+# Chụp final home showcase + multi-template (scroll, lazy-load, popup dismiss)
+# Điền CAPTURE_PATHS.json (product/article/page-custom = handle thật)
+Copy-Item RESTYLE_MASTER_KIT/CAPTURE_PATHS.template.json final-showcase/CAPTURE_PATHS.json
+npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
 
-# Eyeball 4 PNG output trước khi tiếp:
-# final-showcase/desktop-876x2000.png
-# final-showcase/mobile-276x480.png
-# final-showcase/desktop-fullpage-raw.png
-# final-showcase/mobile-fullpage-raw.png
+# Eyeball home 4 PNG (guard contract) + pages/*:
+# final-showcase/Trang chủ.png
+# final-showcase/Trang chủ-mobile.png
+# final-showcase/Trang chủ-fullpage.png
+# final-showcase/Trang chủ-mobile-fullpage.png
+# final-showcase/pages/{collection,product,blog,article,page-default,page-custom,login,register}-{desktop,mobile}.png
 # Còn placeholder/ô trắng/popup che → chụp lại
 
 # Edit THEME_DESCRIPTION.html từ template (sales-focused, fragment chỉ)
 Copy-Item RESTYLE_MASTER_KIT/THEME_DESCRIPTION.template.html final-showcase/THEME_DESCRIPTION.html
 # ...điền nội dung...
 
+# Feature PPTX — tất cả tính năng nổi bật
+Copy-Item RESTYLE_MASTER_KIT/FEATURES.template.json final-showcase/FEATURES.json
+# ...điền brand + features (title/body/image path relative final-showcase)...
+npm run final:pptx -- --out final-showcase --brand "<Brand>"
+
 # Export zip
-npm run final:export -- --root <theme> --file <project-name>-final-theme.zip
+# haravan theme export has no --file (CLI 1.1.x); kit copies newest zip → --out/--file
+npm run final:export -- --root <theme> --file <project-name>-final-theme.zip --out <theme>/final-showcase
 
 # Gate cuối
-npm run guard:final -- --root <theme>
+npm run guard:final -- --root <theme> --require-pptx
 ```
 **→ Gate**: `guard:final` PASS. Tức là:
-- 5 PNG + zip + THEME_DESCRIPTION.html đủ.
+- Home 4 PNG + THEME_DESCRIPTION.html + feature pptx (+ zip nếu require) đủ.
 - PNG dimensions đúng (876×2000 desktop, 276×480 mobile).
 - THEME_DESCRIPTION.html ≥ 200 chars, có `<h1-3>`, có `<ul>`, không có `<!doctype>`.
 - Ledger không còn `| pending |` hoặc `Checkpoint - chưa final`.
@@ -308,7 +322,7 @@ Final output:
 
 ---
 
-## 6 quy tắc cứng (copy vào ledger, không được bỏ qua)
+## 11 quy tắc cứng (copy vào ledger, không được bỏ qua)
 
 ```
 1. Bưng nguyên Stitch — section list/order/layout/copy/color/font/spacing/component/icon.
@@ -327,6 +341,19 @@ Final output:
 
 6. A11y critical/serious phải về 0 trước final.
    Không skip, không workaround.
+
+7. Template-first: markup MỚI theo Stitch, xóa code bị thay.
+   Không đè CSS lên layout legacy, không fallback layout cũ.
+
+8. CSS/JS extend file CÓ SẴN đúng template (index/main/blog/...).
+   File asset mới = deviation phải duyệt. Không min()/max() trong .scss.*.
+
+9. Tên file/ảnh/class theo brand theme — 0 chữ "stitch" trong code ship.
+
+10. Asset jpg/png only — 0 file webp. Đơn vị REM-first, html font-size 100%.
+
+11. Sửa thẳng file đích — không wrapper snippet dùng 1 chỗ.
+    Ghi SKILL_IMPROVEMENT_LOG.md ngay khi gặp bug kit/yêu cầu đổi từ user.
 ```
 
 ---
@@ -348,5 +375,5 @@ Final output:
 | A11y deep | `npm run a11y:deep -- --base <preview-url> --paths /,/products/sample --fail-on serious` |
 | Perf + Lighthouse | `npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /` |
 | Visual diff | `npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths / --capture --threshold 0.30` |
-| Final | `npm run final:capture && npm run final:export && npm run guard:final -- --root <theme>` |
+| Final | `npm run final:capture -- --all-templates && npm run final:pptx && npm run final:export && npm run guard:final -- --root <theme> --require-pptx` |
 | Confirm kit healthy | `npm test` |

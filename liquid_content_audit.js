@@ -47,8 +47,20 @@ function scanFile(file, root) {
     { id: 'HARDCODE_COLOR', severity: 'warn', regex: /(?:color|background(?:-color)?|border(?:-color)?|fill|stroke)\s*:\s*#[0-9a-fA-F]{3,8}\b/g, message: 'Hardcoded hex color. Should use CSS variable/design token.' },
     { id: 'HARDCODE_FONT', severity: 'warn', regex: /font-family\s*:\s*(?!var\()(?!inherit\b)(?!sans-serif\b)(?!serif\b)(?!monospace\b)["']?[A-Za-z]/g, message: 'Hardcoded font-family. Should use theme font variable.' },
     { id: 'INLINE_STYLE', severity: 'warn', regex: /style\s*=\s*["'][^"']{20,}["']/g, message: 'Inline style with significant rules. Move to CSS class/token.' },
-    { id: 'ENGLISH_HARDCODE', severity: 'warn', regex: /(?:>|'|")\s*(Shop now|Buy now|Add to cart|View all|Read more|Learn more|Subscribe|See more|Load more|Show more|Contact us|Our story|About us|Sign up|Log in|Sign in|Free shipping|New arrival|Best seller|Sale|Sold out|Out of stock|View details|Continue shopping)\s*(?:<|'|")/gi, message: 'English hardcode candidate. Should be Vietnamese or settings-driven.' }
+    { id: 'ENGLISH_HARDCODE', severity: 'warn', regex: /(?:>|'|")\s*(Shop now|Buy now|Add to cart|View all|Read more|Learn more|Subscribe|See more|Load more|Show more|Contact us|Our story|About us|Sign up|Log in|Sign in|Free shipping|New arrival|Best seller|Sale|Sold out|Out of stock|View details|Continue shopping)\s*(?:<|'|")/gi, message: 'English hardcode candidate. Should be Vietnamese or settings-driven.' },
+    { id: 'WEBP_REF', severity: 'warn', regex: /\.webp\b/gi, message: 'Reference to webp asset. Theme assets must be jpg/png only.' }
   ];
+
+  // Server-side legacy SCSS compiler: lowercase min()/max() require numeric args;
+  // any CSS-math usage bakes "Error > stdin" into the served file and kills every rule in it.
+  if (/\.scss\.(liquid|css)$/i.test(file)) {
+    patterns.push({
+      id: 'SCSS_MIN_MAX',
+      severity: 'blocker',
+      regex: /(^|[^-@a-zA-Z.$])(?:min|max)\(/g,
+      message: 'Lowercase min()/max() breaks the legacy SCSS compiler. Use width:100% + max-width, clamp(), or unquote("min(...)").'
+    });
+  }
 
   for (const pattern of patterns) {
     const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
@@ -75,6 +87,32 @@ function main() {
     ext: /\.(liquid|js|css|html|json)$/i
   });
   const findings = files.flatMap((file) => scanFile(file, args.root));
+
+  // File-NAME checks over every shipped file (images included): design-tool
+  // labels and webp assets are forbidden in the shipped theme regardless of content.
+  const allShipped = walkTheme(args.root, {
+    dirs: ['assets', 'config', 'layout', 'snippets', 'templates'],
+    ext: /./
+  });
+  for (const file of allShipped) {
+    const base = path.basename(file);
+    if (/stitch/i.test(base)) {
+      findings.push({
+        severity: 'blocker',
+        rule: 'STITCH_FILENAME',
+        location: path.relative(args.root, file),
+        message: 'Shipped file name carries a design-tool label. Rename to a theme-brand/semantic name.'
+      });
+    }
+    if (/\.webp$/i.test(base)) {
+      findings.push({
+        severity: 'blocker',
+        rule: 'WEBP_ASSET',
+        location: path.relative(args.root, file),
+        message: 'webp asset is forbidden. Re-encode to jpg/png (sharp, quality ~80).'
+      });
+    }
+  }
   const bySeverity = countBySeverity(findings);
 
   console.log('# Liquid Content Audit');

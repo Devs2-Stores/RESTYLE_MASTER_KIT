@@ -154,10 +154,13 @@ npm run asset:plan -- --plan scratch/asset-plan.json --root <theme>
 - **Gate**: `Missing: 0 | Wrong: 0`.
 
 ### A.9. Implement section-by-section (theo Stitch fidelity)
+- **Template-first conversion, không phải restyle**: dựng MARKUP MỚI theo Stitch cho từng template; markup cũ không thể hiện được design thì XÓA, không đè CSS lên DOM legacy, không giữ fallback layout cũ (STITCH_FIDELITY.md §1A). Feature/behavior cũ (AJAX cart, slider, quickview, mega menu...) bưng hook sang markup mới — muốn BỎ một feature phải hỏi user trước.
 - Từ scaffold ở A.7, điền: layout grid, copy text, asset slot, CSS scoped, JS lifecycle theo theme đích.
+- **CSS/JS viết vào file CÓ SẴN đúng template** (home → `index.*`, shell → `main.*`, blog → `blog.*`, ...), giữ dialect `.scss.*` (nesting OK, cấm `min()`/`max()` chữ thường). Không tạo file asset mới song song. Tên file/class/ảnh theo brand theme — không có chữ "stitch". Ảnh jpg/png, cấm webp. Đơn vị REM-first (px ÷ 16).
 - Mỗi section xong: mở Stitch screen song song so visual. Lệch không có lý do trong allowed deviation → dừng, hỏi user.
-- Update ledger: file đã đổi + deviation log nếu có.
-- **Gate per section**: eyeball compare với Stitch screen tương ứng.
+- **Mechanical checks trước khi kết thúc phiên/section** (STITCH_FIDELITY.md §5B): grep min(/max( trên `.scss.*` = 0 · file CSS/JS mới = 0 · grep stitch trên file ship = 0 · webp = 0 · wrapper snippet 1 chỗ = 0. Ghi kết quả vào ledger.
+- Update ledger: file đã đổi + deviation log nếu có + entry `SKILL_IMPROVEMENT_LOG.md` nếu gặp kit bug/rule mù mờ/yêu cầu đổi từ user.
+- **Gate per section**: eyeball compare với Stitch screen tương ứng + 5 mechanical checks PASS.
 
 ### A.10. Audit static
 ```powershell
@@ -201,13 +204,42 @@ npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths /
 
 ### A.15. Final + guard
 ```powershell
-npm run final:capture -- --base <preview-url>
-# Edit final-showcase/THEME_DESCRIPTION.html từ template, sales-focused fragment
-npm run final:export -- --root <theme> --file <project>-final-theme.zip
-npm run guard:final -- --root <theme>
+# 1) Home showcase (4 PNG guard contract) + multi-template pages (desktop pages default)
+#    Copy CAPTURE_PATHS.template.json → final-showcase/CAPTURE_PATHS.json
+#    Điền product/article/page-custom bằng handle thật trước khi chạy.
+#    Always keep home mobile 276x480; do NOT put mobile page grids into sales PPTX unless asked.
+npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json [--theme-id <id>]
+# Eyeball: home desktop+mobile + pages/ with readable names:
+#   pages/Trang chi tiết sản phẩm.png, Trang chi tiết bài viết.png, …
+
+# 2) Description fragment
+# Edit final-showcase/THEME_DESCRIPTION.html từ template, sales-focused fragment (merchant language)
+
+# 3) Feature images + PPTX
+# FEATURES.json: plain merchant Vietnamese (lợi ích + bật/tắt settings), NOT eng jargon
+# Capture taxonomy (gold standard — see kit FINAL_SHOWCASE.md):
+#   - Widgets (pop-sale, popnoti, social, search, cart): tight crop on #f3f4f6, kill #shop-modal-contact first
+#   - Sections (hero/flash/…): document-offset crop; hero must not be covered by newsletter modal
+#   - Product card: isolated card stage (badge + ATC)
+#   - Every page.* custom (about/store/contact/faq/gallery/…): full-page desktop in FEATURES
+# Prefer scripts/final_feature_pack.example.js (or theme showcase-recapture-v2) for widgets;
+# or npm run final:feature-capture with careful FEATURE_SHOTS.json
+npm run final:feature-capture -- --base <preview-url> --out final-showcase [--theme-id <id>]
+npm run final:pptx -- --out final-showcase --brand "<Brand>"
+# PPTX: aspect-fit (no stretch), ≥0.5" margins, ≥0.35" frame pad — reopen PPTX after rebuild
+
+# 4) Export + gate
+#    Pre-export UI smoke: skill haravan-stitch-full-run/references/post-restyle-qa-checklist.md
+#    CLI note: `haravan theme export` does NOT accept --file (v1.1.x). Kit script runs bare export
+#    then copies newest zip → --out/--file. Manual fallback:
+#      cd <theme>; haravan theme export; copy .\*.zip .\final-showcase\<project>-final-theme.zip
+npm run final:export -- --root <theme> --file <project>-final-theme.zip --out <theme>/final-showcase
+npm run guard:final -- --root <theme> --require-pptx
 ```
 - Mark final trong ledger.
-- **Gate**: `guard:final` PASS.
+- **Gate**: `guard:final` PASS (home PNG dims + description + pptx khi `--require-pptx`).
+- **Visual QA**: wrong subject / newsletter on hero / edge-clipped widgets / tech FEATURES copy → fix before STOP 3.
+- **Export-only request:** skip capture/PPTX; run export steps only.
 
 ---
 
@@ -305,6 +337,12 @@ Khi user trỏ vào theme cũ + ý "audit và fix", không có design source.
 | Visual diff threshold 5% fail vì restyle full | Chỉnh `--threshold` cao (0.30-0.50) khi restyle full. Threshold thấp chỉ cho audit-led. |
 | A11y deep ra critical, fix bằng cách bỏ qua | Critical/serious phải về 0 trước final. Không skip. |
 | Bundle sau restyle to gấp đôi | Chạy `orphan:sweep` xóa CSS/JS cũ. Audit `IMPORTANT_ABUSE`/`INLINE_STYLE`. Move CSS module sang scoped. |
+| Đè CSS lên layout legacy thay vì convert | Template-first: dựng markup mới theo Stitch, xóa markup cũ. Không giữ fallback/toggle quay về layout cũ. |
+| Tạo file CSS/JS mới thay vì extend file sẵn có | Map `assets/` trước; viết vào `main`/`index`/`blog`/... đúng template. File mới = deviation phải duyệt. |
+| `min()`/`max()` trong `.scss.*` giết cả stylesheet | Dùng `width:100% + max-width` / `clamp()`. `audit:content` chặn `SCSS_MIN_MAX`; sau upload grep `Error >` trên CDN. |
+| Tên file/ảnh/class dính chữ "stitch" | Đặt tên theo brand theme. `audit:content` chặn `STITCH_LEAK`/`STITCH_FILENAME`. |
+| Asset webp lọt vào `assets/` | jpg/png only, nén qua sharp q~80. `audit:content` chặn `WEBP_ASSET`/`WEBP_REF`. |
+| Tạo snippet wrapper rồi include đúng 1 nơi | Sửa thẳng file đích (`header.liquid`, `index.liquid`...). Snippet mới chỉ khi tái dùng 2+ chỗ hoặc theme đã có pattern tách. |
 
 ---
 
@@ -343,6 +381,8 @@ Sau mỗi phase lớn, agent output:
 - A11y deep: <critical/serious count + link>
 - Perf: <bundle delta + LCP/TBT/CLS nếu có>
 - Deviation log: <list nếu có, format [section] change → reason>
+- Mechanical checks: <5 check PASS/FAIL-fixed>
+- Improvement log: <entry mới trong SKILL_IMPROVEMENT_LOG.md nếu có, hoặc none>
 - Status: pass | checkpoint - chưa final | blocked
 - Next queue: <bước tiếp nếu chưa final>
 ```
@@ -352,13 +392,14 @@ Khi final:
 ```
 ## Final
 - Theme root: <path>
-- Final artifacts: 5 file trong final-showcase/ + zip
-- Guard: PASS
+- Final artifacts: home 4 PNG + pages/* multi-template + FEATURES.pptx + zip + THEME_DESCRIPTION.html
+- Guard: PASS (--require-pptx)
 - A11y deep: 0 critical, 0 serious
 - Perf: bundle <X> kB (delta <Y> kB), LCP <Zms>, CLS <W>
 - Visual diff vs baseline: <%>
 - QA fail count: 0
 - Description: final-showcase/THEME_DESCRIPTION.html (X chars, có heading + ul)
+- Feature deck: final-showcase/<brand>-features.pptx (cover + section + N features + thank-you)
 ```
 
 Đó là evidence-based handoff, không cảm tính.

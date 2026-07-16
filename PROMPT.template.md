@@ -16,7 +16,7 @@ Nếu thiếu 1 trong 3, agent sẽ hỏi lại — đỡ dài hơn nếu cho lu
 ## 0. Gọi global skill trực tiếp (ngắn nhất)
 
 ```text
-Dùng global skill haravan-stitch-full-run cho flow Stitch -> Haravan.
+Nạp skill /haravan trước, rồi dùng global skill haravan-stitch-full-run cho flow Stitch -> Haravan.
 Theme: <C:/path/to/theme>
 Stitch export: <C:/path/to/stitch-export> hoặc nói rõ là chưa có export
 Preview URL: <https://...> hoặc "chưa có"
@@ -57,9 +57,14 @@ Permissions:
 Asset source ưu tiên: <BFL flux-2 | brand cung cấp | reuse theme cũ | iconify free>
 
 Constraint:
+- Nạp skill /haravan trước khi làm việc (nếu có hệ skill Haravan).
+- Template-first conversion: markup MỚI 100% theo Stitch, xóa code bị thay — không đè CSS lên layout cũ, không fallback layout cũ. Feature/behavior cũ bưng hook sang markup mới.
 - Bưng nguyên Stitch theo STITCH_FIDELITY.md, deviation phải ghi ledger.
+- CSS/JS extend file có sẵn đúng template (index/main/blog/...) — không tạo file mới; không min()/max() trong .scss.*.
+- Tên file/ảnh/class theo brand theme — 0 chữ "stitch" trong code ship. Asset jpg/png, cấm webp. Đơn vị REM-first.
 - Việt hóa toàn bộ copy storefront.
 - Container dùng page-width, không hardcode 1280px.
+- Ghi <theme>/deliverables/SKILL_IMPROVEMENT_LOG.md ngay khi có kit bug / yêu cầu đổi từ tôi.
 
 Bắt đầu A.1 intake. Hỏi tôi 1-3 câu nếu còn thiếu.
 ```
@@ -157,11 +162,13 @@ Chạy theo thứ tự:
 1. npm run audit:restyle -- --root <theme>           (0 blocker)
 2. npm run a11y:deep -- --base <url> --paths /,/products/sample --fail-on serious
 3. npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <url> --paths /
-4. npm run final:capture -- --base <url>
-5. Eyeball 4 PNG trong final-showcase/, chụp lại nếu xấu
+4. npm run final:capture -- --base <url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
+5. Eyeball home 4 PNG + pages/* (collection/product/blog/article/page-default/page-custom/login/register); chụp lại nếu xấu
 6. Điền final-showcase/THEME_DESCRIPTION.html từ template (sales-focused fragment)
-7. npm run final:export -- --root <theme> --file <project>-final-theme.zip
-8. npm run guard:final -- --root <theme>             (PASS bắt buộc)
+7. Điền final-showcase/FEATURES.json (từ FEATURES.template.json) — TẤT CẢ tính năng nổi bật + image path
+8. npm run final:pptx -- --out final-showcase --brand "<Brand>"
+9. npm run final:export -- --root <theme> --file <project>-final-theme.zip
+10. npm run guard:final -- --root <theme> --require-pptx   (PASS bắt buộc)
 
 Báo theo template Final trong FLOW_A.md mục "Output báo user sau mỗi phase".
 ```

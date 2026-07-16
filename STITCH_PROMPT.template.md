@@ -4,18 +4,63 @@ Use this template before generating screens in Google Stitch or Stitch MCP. The 
 
 ## How To Use
 
-1. Fill the project fields.
-2. Choose the prompt mode:
+1. Đọc mục **GLOBAL RULES (BẮT BUỘC)** bên dưới trước — full-theme là một SET prompt, mỗi màn hình một prompt, mọi prompt đều nhúng GLOBAL RULES + SHELL SPEC + set-position line.
+2. Fill the project fields.
+3. Choose the prompt mode:
    - `Creative Direction`: let Stitch explore layout and section composition.
    - `Conversion-Safe`: keep ecommerce states and dynamic data very explicit.
-3. Pick the page type and module intent. Do not force every module into the screen.
-4. Paste the final prompt into Stitch, or pass it to Stitch MCP `generate_screen_from_text`.
-5. After Stitch generates the screen, run the conversion workflow:
+4. Pick the page type and module intent. Do not force every module into the screen.
+5. Paste the final prompt into Stitch, or pass it to Stitch MCP `generate_screen_from_text`.
+6. After Stitch generates the screen, run the conversion workflow:
    - Preflight + điền `THEME_FINGERPRINT.template.md`
    - Chạy `node stitch_consume.js --in <stitch-export> --out scratch/stitch/<screen>`
    - Điền `section-config.template.json` + `asset-plan.template.json`
    - Implement theo `STITCH_FIDELITY.md`
    - QA bằng `qa_restyle_check.js` + `a11y_deep.js`
+
+## GLOBAL RULES (BẮT BUỘC — nhúng vào MỌI screen prompt)
+
+Bộ prompt cho một dự án full-theme là một **SET**: mỗi màn hình một prompt riêng, không được gộp nhiều màn hình vào một prompt, không được bỏ sót màn hình nào. Track trạng thái từng màn hình trong ledger (`prompted / generated / approved / converted`).
+
+```markdown
+GLOBAL RULES (BẮT BUỘC):
+Phải tạo đầy đủ tất cả các trang, mỗi cái là một màn hình riêng biệt hoàn toàn:
+- Trang chủ · Trang danh mục sản phẩm · Trang chi tiết sản phẩm
+- Trang tin tức · Trang chi tiết bài viết
+- Trang Giới thiệu · Trang Hệ thống cửa hàng · Trang Liên hệ
+- Trang Giỏ hàng · Trang Tìm kiếm
+- Trang account (Login / Register / Default / Address / Order)
+- Quickview Modal · Cart Sidebar · Menu Mobile · Compare Modal
+- Wishlist Modal · Smart search modal · Newsletter Modal · TOC menu
+- Account Modal · Menu Dropdown Desktop · Megamenu Desktop
+- Swal Modal · Sale Popup · Notify Modal · Livechat Modal
+*** Bản responsive mobile của TỪNG trang ***
+
+MOTION/INTERACTION SPEC (bắt buộc — Stitch xuất design tĩnh nên phải THỂ HIỆN
+qua states/annotation/frame phụ): hover effect cho card/button/link · animation
+entrance cho section · JS slider (vẽ đủ dots/arrows/peek state) · marquee strip ·
+countdown block · counter/số liệu động — ghi rõ mỗi cái xuất hiện ở đâu, chạy thế nào.
+
+Font: BẮT BUỘC chọn font có hỗ trợ tiếng Việt (Vietnamese subset) và có trên Google Fonts.
+Đặt tên màn hình bằng TIẾNG ANH (Home, Product Detail, Cart...);
+toàn bộ nội dung/copy TRONG màn hình bằng TIẾNG VIỆT.
+
+HEADER và FOOTER phải GIỐNG HỆT NHAU 100% trên MỌI màn hình — đúng SHELL SPEC bên dưới,
+không được thiết kế lại/biến tấu header-footer ở bất kỳ screen nào.
+```
+
+**SHELL SPEC — chống header/footer drift (bắt buộc):** Stitch sinh từng screen độc lập nên hay tự chế lại header/footer. Chốt trước khi sinh screen đầu tiên:
+
+1. Soạn MỘT **SHELL SPEC block** canonical: header (vị trí logo, menu items cụ thể, bộ icon utility, announcement bar) + footer (số cột, nhóm link, newsletter, liên hệ, social) + shared elements (floating buttons nếu có).
+2. Paste block đó **NGUYÊN VĂN** vào MỌI screen prompt, mở đầu bằng: "Header/Footer PHẢI đúng spec sau, KHÔNG sáng tạo lại: ...".
+3. Sau khi Stitch trả screens: so header/footer từng screen với spec — screen nào lệch thì regenerate/edit screen đó TRƯỚC KHI export (đừng mang drift vào conversion).
+
+**Mỗi screen prompt PHẢI nhúng** (thiếu 1 trong 3 = vi phạm protocol):
+- (a) SHELL SPEC nguyên văn,
+- (b) khối GLOBAL RULES core (font VN subset · tên màn hình EN, copy VN · motion spec · UI states),
+- (c) dòng set-position: "Screen X of <tổng> — prompt này chỉ vẽ <tên màn hình> (desktop hoặc mobile)".
+
+Danh sách màn hình trên đồng thời là **CONVERSION SCOPE checklist**: full-theme chưa xong khi còn màn hình chưa convert (track per-screen trong ledger).
 
 ## Master Prompt
 
@@ -70,6 +115,7 @@ Create a high-fidelity ecommerce storefront design for a Haravan theme restyle.
 - Do not place Vietnamese or brand copy inside images; text must be real HTML text.
 - Avoid dark, blurred, cropped, stock-like images when product/place/object inspection matters.
 - Keep image slots with stable aspect ratios for desktop and mobile.
+- Final theme assets ship as jpg/png ONLY (webp is forbidden at conversion time); plan imagery accordingly.
 
 **RESPONSIVE REQUIREMENTS**
 - Must work at 320, 375, 768, 1024, and 1440px.
