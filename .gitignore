@@ -7,3 +7,4 @@ final-showcase/
 *.tmp.png
 NUL
 *.log
+.claude/
