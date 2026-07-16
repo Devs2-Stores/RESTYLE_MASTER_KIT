@@ -1,0 +1,53 @@
+{
+  "themeId": "",
+  "shots": [
+    {
+      "id": "hero",
+      "path": "/",
+      "selector": ".hero, [class*='home__hero'], main section:first-of-type",
+      "file": "features/hero.png",
+      "padding": 8
+    },
+    {
+      "id": "flash-sale",
+      "path": "/",
+      "selector": "[class*='home__flash'], [class*='flash-sale'], .flash-sale",
+      "file": "features/flash-sale.png",
+      "padding": 12
+    },
+    {
+      "id": "product-card",
+      "path": "/collections/all",
+      "selector": ".product-item, [class*='product-card']",
+      "file": "features/product-card.png",
+      "padding": 8
+    },
+    {
+      "id": "collection-filter",
+      "path": "/collections/all",
+      "selector": "[class*='collection__filters'], .shop-filter-wrap, .main-collection-left",
+      "file": "features/collection-filter.png",
+      "padding": 8
+    },
+    {
+      "id": "search",
+      "path": "/",
+      "click": "[class*='search-toggle'], .header-search, [data-open-search]",
+      "waitFor": "[class*='smart-search'], .search-panel, [class*='search__panel']",
+      "selector": "[class*='smart-search'], .search-panel",
+      "file": "features/search.png",
+      "keepOverlays": true,
+      "padding": 0
+    },
+    {
+      "id": "cart-drawer",
+      "path": "/",
+      "click": "[class*='header__cart'], .shop-cart, [data-open-cart]",
+      "waitFor": ".shop-cart-sidebar, [class*='drawer']",
+      "selector": ".shop-cart-sidebar, [class*='drawer']",
+      "file": "features/cart-drawer.png",
+      "keepOverlays": true,
+      "padding": 0
+    }
+  ]
+}

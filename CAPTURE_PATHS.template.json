@@ -1,0 +1,11 @@
+{
+  "home": "/",
+  "collection": "/collections/all",
+  "product": "/products/REPLACE-WITH-REAL-HANDLE",
+  "blog": "/blogs/news",
+  "article": "/blogs/news/REPLACE-WITH-REAL-HANDLE",
+  "page-default": "/pages/about-us",
+  "page-custom": "/pages/REPLACE-WITH-CUSTOM-PAGE",
+  "login": "/account/login",
+  "register": "/account/register"
+}

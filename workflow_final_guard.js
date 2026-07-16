@@ -10,6 +10,7 @@ function parseArgs(argv) {
     root: path.resolve(process.cwd(), '..'),
     out: null,
     requireZip: false,
+    requirePptx: false,
     help: false
   };
   for (let i = 2; i < argv.length; i += 1) {
@@ -18,6 +19,7 @@ function parseArgs(argv) {
     else if (value === '--root') { args.root = path.resolve(readValue(argv, i, '--root')); i += 1; }
     else if (value === '--out') { args.out = path.resolve(readValue(argv, i, '--out')); i += 1; }
     else if (value === '--require-zip') args.requireZip = true;
+    else if (value === '--require-pptx') args.requirePptx = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
   if (!args.out) args.out = path.join(args.root, 'final-showcase');
@@ -26,7 +28,7 @@ function parseArgs(argv) {
 
 function usage() {
   console.log(`Usage:
-  node workflow_final_guard.js --root <theme-root> [--out <final-showcase-dir>] [--require-zip]
+  node workflow_final_guard.js --root <theme-root> [--out <final-showcase-dir>] [--require-zip] [--require-pptx]
 
 Checks:
   - progress ledger exists and has no pending/final checkpoint
@@ -34,6 +36,7 @@ Checks:
   - desktop/mobile cropped screenshots have exact required dimensions
   - THEME_DESCRIPTION.html is an editor fragment
   - optional export zip exists when --require-zip is set
+  - optional feature deck (.pptx) exists when --require-pptx is set
 `);
 }
 
@@ -87,25 +90,47 @@ function validatePng(filePath, failures, expectedSize) {
   }
 }
 
+/** Resolve first existing filename among candidates (human-readable first, legacy second). */
+function resolveShowcaseFile(outDir, candidates) {
+  for (const name of candidates) {
+    const full = path.join(outDir, name);
+    if (fs.existsSync(full)) return full;
+  }
+  return path.join(outDir, candidates[0]);
+}
+
 function validateFinalArtifacts(args, failures) {
+  // Prefer Vietnamese home names; accept legacy machine names for older packs
+  const desktopCrop = resolveShowcaseFile(args.out, ['Trang chủ.png', 'desktop-876x2000.png']);
+  const mobileCrop = resolveShowcaseFile(args.out, ['Trang chủ-mobile.png', 'mobile-276x480.png']);
+  const desktopRaw = resolveShowcaseFile(args.out, ['Trang chủ-fullpage.png', 'desktop-fullpage-raw.png']);
+  const mobileRaw = resolveShowcaseFile(args.out, ['Trang chủ-mobile-fullpage.png', 'mobile-fullpage-raw.png']);
+
   const required = [
-    ['desktop screenshot', 'desktop-876x2000.png'],
-    ['mobile screenshot', 'mobile-276x480.png'],
-    ['raw desktop screenshot', 'desktop-fullpage-raw.png'],
-    ['raw mobile screenshot', 'mobile-fullpage-raw.png'],
-    ['theme description', 'THEME_DESCRIPTION.html']
+    ['desktop screenshot (Trang chủ.png)', desktopCrop],
+    ['mobile screenshot (Trang chủ-mobile.png)', mobileCrop],
+    ['raw desktop screenshot', desktopRaw],
+    ['raw mobile screenshot', mobileRaw],
+    ['theme description', path.join(args.out, 'THEME_DESCRIPTION.html')]
   ];
-  for (const [label, fileName] of required) assertFile(path.join(args.out, fileName), label, failures);
+  for (const [label, filePath] of required) assertFile(filePath, label, failures);
   validateDescription(path.join(args.out, 'THEME_DESCRIPTION.html'), failures);
 
-  validatePng(path.join(args.out, 'desktop-876x2000.png'), failures, { w: 876, h: 2000 });
-  validatePng(path.join(args.out, 'mobile-276x480.png'), failures, { w: 276, h: 480 });
-  validatePng(path.join(args.out, 'desktop-fullpage-raw.png'), failures);
-  validatePng(path.join(args.out, 'mobile-fullpage-raw.png'), failures);
+  validatePng(desktopCrop, failures, { w: 876, h: 2000 });
+  validatePng(mobileCrop, failures, { w: 276, h: 480 });
+  validatePng(desktopRaw, failures);
+  validatePng(mobileRaw, failures);
 
   if (args.requireZip) {
     const zips = fs.existsSync(args.out) ? fs.readdirSync(args.out).filter((file) => /\.zip$/i.test(file)) : [];
     if (!zips.length) failures.push(`missing theme export zip in ${args.out}`);
+  }
+
+  if (args.requirePptx) {
+    const pptx = fs.existsSync(args.out)
+      ? fs.readdirSync(args.out).filter((file) => /\.pptx$/i.test(file))
+      : [];
+    if (!pptx.length) failures.push(`missing feature deck pptx in ${args.out}`);
   }
 }
 

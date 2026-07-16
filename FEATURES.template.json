@@ -1,0 +1,77 @@
+{
+  "brand": "Brand Name",
+  "tagline": "Mô tả ngắn 1 dòng cho cover (lợi ích shop)",
+  "coverSubtitle": "2–3 câu cho chủ shop: theme làm gì, ai dùng, tự sửa trong Theme settings — không jargon kỹ thuật.",
+  "sectionTitle": "TÍNH NĂNG NỔI BẬT",
+  "thankYou": "Team Brand xin cảm ơn ạ.",
+  "palette": {
+    "bg": "#111111",
+    "surface": "#1A1A1A",
+    "accent": "#C8F54B",
+    "text": "#FFFFFF",
+    "muted": "#B3B3B3",
+    "card": "#F7F7F5"
+  },
+  "features": [
+    {
+      "title": "Popup “vừa mua”",
+      "body": "2–4 câu: khách thấy ai đó vừa mua → dễ bấm Mua ngay. Bật/tắt và gắn sản phẩm trong Theme settings. Ảnh = crop widget trên nền xám, không full homepage.",
+      "bullets": [
+        "Hiện tên + thời gian vừa mua",
+        "Nút Mua ngay dẫn sản phẩm",
+        "Bật tắt trong settings"
+      ],
+      "image": "features/pop-sale.png"
+    },
+    {
+      "title": "Chuông ưu đãi",
+      "body": "Nút chuông cố định: bấm ra danh sách deal/link. Không chiếm banner giữa trang.",
+      "bullets": [
+        "Chuông cố định dễ thấy",
+        "Tới 5 dòng ưu đãi + link",
+        "Sửa chữ trong settings"
+      ],
+      "image": "features/popnoti.png"
+    },
+    {
+      "title": "Menu dính + mega menu",
+      "body": "Cuộn trang menu vẫn bám trên. Mega menu nhiều nhóm SP + ảnh khuyến mãi.",
+      "bullets": [
+        "Menu dính khi cuộn",
+        "Mega menu + ảnh",
+        "Nhãn HOT/NEW"
+      ],
+      "image": "features/header-mega.png"
+    },
+    {
+      "title": "Flash Sale đếm ngược",
+      "body": "Khối sale riêng trên trang chủ: đếm ngược, nhãn LIVE, lưới săn deal. Ảnh = crop đúng section, không che bởi popup đăng ký.",
+      "bullets": [
+        "Đếm ngược giờ Việt Nam",
+        "Nhãn LIVE",
+        "Nút săn deal"
+      ],
+      "image": "features/flash-sale.png"
+    },
+    {
+      "title": "Thẻ sản phẩm",
+      "body": "Ảnh vuông, nhãn giảm giá, nút thêm giỏ. Ảnh = 1 thẻ isolate, không crop header collection.",
+      "bullets": [
+        "Ảnh vuông 1:1",
+        "Nhãn sale/hot",
+        "Thêm giỏ trên thẻ"
+      ],
+      "image": "features/product-card.png"
+    },
+    {
+      "title": "Trang hệ thống cửa hàng",
+      "body": "Full-page desktop template page custom: chi nhánh, map, CTA. Mọi page.* custom (about/contact/faq/gallery/store) nên có slide full-page.",
+      "bullets": [
+        "Danh sách / map chi nhánh",
+        "CTA liên hệ / chỉ đường",
+        "Template page riêng"
+      ],
+      "image": "features/stores.png"
+    }
+  ]
+}

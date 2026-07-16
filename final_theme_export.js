@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 'use strict';
+/**
+ * Export theme zip for handoff.
+ *
+ * Haravan CLI 1.1.x: `haravan theme export` writes an auto-named zip in the theme root
+ * and does NOT accept `--file`. This wrapper:
+ *   1) runs export in --root
+ *   2) finds the newest .zip in root
+ *   3) copies/renames to --out/--file
+ *   4) validates PK magic + non-empty size
+ */
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -19,38 +29,49 @@ function parseArgs(argv) {
     else if (value === '--help' || value === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
+  if (!args.file.toLowerCase().endsWith('.zip')) args.file += '.zip';
   return args;
 }
 
 function usage() {
   console.log(`Usage:
-  node final_theme_export.js --root .. --file "project-final-theme.zip" [--out ../final-showcase]
+  node final_theme_export.js --root <theme> --file "Brand-final-theme.zip" [--out <dir>]
+
+Notes:
+  - Runs: haravan theme export  (cwd = theme root; no --file flag — CLI rejects it)
+  - Copies newest theme-root *.zip → --out/--file
 `);
 }
 
-function newestZip(dir, requestedFile) {
-  const requestedBase = requestedFile.replace(/\.zip$/i, '');
-  const files = fs.readdirSync(dir)
+function listZips(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
     .filter((name) => /\.zip$/i.test(name))
     .map((name) => {
       const full = path.join(dir, name);
       return { name, full, mtime: fs.statSync(full).mtimeMs };
     })
-    .filter((item) => item.name === requestedFile || item.name.startsWith(requestedBase))
     .sort((a, b) => b.mtime - a.mtime);
-  return files[0];
 }
 
-function normalizeZip(outDir, requestedFile) {
-  const requestedPath = path.join(outDir, requestedFile);
-  if (fs.existsSync(requestedPath)) return requestedPath;
-  const candidate = newestZip(outDir, requestedFile);
-  if (!candidate) return '';
-  if (candidate.full !== requestedPath) {
-    if (fs.existsSync(requestedPath)) fs.unlinkSync(requestedPath);
-    fs.renameSync(candidate.full, requestedPath);
+function newestZip(dir) {
+  const files = listZips(dir);
+  return files[0] || null;
+}
+
+function validateZip(filePath) {
+  const zipStat = fs.statSync(filePath);
+  if (zipStat.size === 0) {
+    throw new Error('export zip is empty (0 bytes)');
   }
-  return requestedPath;
+  const header = Buffer.alloc(4);
+  const fd = fs.openSync(filePath, 'r');
+  fs.readSync(fd, header, 0, 4, 0);
+  fs.closeSync(fd);
+  if (header[0] !== 0x50 || header[1] !== 0x4B || header[2] !== 0x03 || header[3] !== 0x04) {
+    throw new Error('export zip has invalid magic bytes (not a valid zip file)');
+  }
+  return zipStat.size;
 }
 
 function main() {
@@ -60,12 +81,22 @@ function main() {
     return 0;
   }
 
+  if (!fs.existsSync(args.root) || !fs.existsSync(path.join(args.root, 'layout'))) {
+    console.error(`ERROR: theme root looks invalid: ${args.root}`);
+    return 1;
+  }
+
   fs.mkdirSync(args.out, { recursive: true });
-  const requestedPath = path.join(args.out, args.file);
-  if (fs.existsSync(requestedPath)) fs.unlinkSync(requestedPath);
+  const destPath = path.join(args.out, args.file);
+  if (fs.existsSync(destPath)) fs.unlinkSync(destPath);
+
+  const before = new Set(listZips(args.root).map((z) => z.full));
+  const beforeNewest = newestZip(args.root);
+  const beforeMtime = beforeNewest ? beforeNewest.mtime : 0;
 
   const cli = process.env.HARAVAN_CLI_CMD || 'haravan';
-  const result = spawnSync(cli, ['theme', 'export', '--file', requestedPath], {
+  // CLI: no --file support (verified Haravan CLI 1.1.x, 2026-07-15)
+  const result = spawnSync(cli, ['theme', 'export'], {
     cwd: args.root,
     stdio: 'inherit',
     shell: process.platform === 'win32'
@@ -77,30 +108,39 @@ function main() {
   }
   if (result.status !== 0) return result.status || 1;
 
-  const finalPath = normalizeZip(args.out, args.file);
-  if (!finalPath) {
-    console.error('ERROR: export finished but no zip artifact was found.');
+  // Prefer a zip created after this run; else newest overall
+  let candidate = listZips(args.root).find((z) => z.mtime > beforeMtime + 500) || null;
+  if (!candidate) {
+    candidate = newestZip(args.root);
+  }
+  if (!candidate) {
+    console.error('ERROR: export finished but no zip artifact was found in theme root.');
     return 1;
+  }
+  if (before.has(candidate.full) && candidate.mtime <= beforeMtime + 500) {
+    console.warn(`WARN: using existing zip (mtime not newer): ${candidate.name}`);
   }
 
-  const zipStat = fs.statSync(finalPath);
-  if (zipStat.size === 0) {
-    console.error('ERROR: export zip is empty (0 bytes).');
-    return 1;
-  }
-  const header = Buffer.alloc(4);
-  const fd = fs.openSync(finalPath, 'r');
-  fs.readSync(fd, header, 0, 4, 0);
-  fs.closeSync(fd);
-  if (header[0] !== 0x50 || header[1] !== 0x4B || header[2] !== 0x03 || header[3] !== 0x04) {
-    console.error('ERROR: export zip has invalid magic bytes (not a valid zip file).');
+  fs.copyFileSync(candidate.full, destPath);
+  let size;
+  try {
+    size = validateZip(destPath);
+  } catch (e) {
+    console.error(`ERROR: ${e.message}`);
     return 1;
   }
 
   console.log('# Final Theme Export');
   console.log(`Theme root: ${args.root}`);
-  console.log(`Zip: ${finalPath}`);
+  console.log(`CLI zip:    ${candidate.full}`);
+  console.log(`Handoff:    ${destPath}`);
+  console.log(`Size:       ${size} bytes`);
   return 0;
 }
 
-try { process.exitCode = main() ?? 0; } catch (e) { console.error('ERROR: ' + e.message); process.exitCode = 1; }
+try {
+  process.exitCode = main() ?? 0;
+} catch (e) {
+  console.error('ERROR: ' + e.message);
+  process.exitCode = 1;
+}
