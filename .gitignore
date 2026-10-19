@@ -8,3 +8,6 @@ final-showcase/
 NUL
 *.log
 .claude/
+.git-nested/
+.haravan-cli_*.json
+*.har
