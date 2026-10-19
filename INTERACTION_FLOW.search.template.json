@@ -1,0 +1,35 @@
+{
+  "flows": [
+    {
+      "name": "smart-search-products-and-empty-state",
+      "path": "/",
+      "viewports": [375, 1440],
+      "steps": [
+        {
+          "action": "click",
+          "selector": "[data-action=\"open-search-modal\"]"
+        },
+        {
+          "action": "fillAndWaitForResponse",
+          "selector": ".search-modal-input",
+          "value": "nệm",
+          "urlIncludes": "view=smart",
+          "status": 200
+        },
+        {
+          "action": "expectVisible",
+          "selector": ".search-modal-results-content"
+        },
+        {
+          "action": "press",
+          "value": "Escape"
+        },
+        {
+          "action": "waitFor",
+          "selector": "search-modal:not(.show)",
+          "state": "attached"
+        }
+      ]
+    }
+  ]
+}

@@ -26,6 +26,20 @@ function collectSettingsKeys(settingsHtml) {
   for (const match of settingsHtml.matchAll(/\b(?:name|id|key|setting)\s*=\s*["'][^"']*?([a-zA-Z0-9_:-]+)[^"']*?["']/g)) keys.add(match[1]);
   return keys;
 }
+function collectSchemaJsonKeys(schemaJsonText) {
+  const keys = new Set();
+  try {
+    const data = JSON.parse(schemaJsonText);
+    if (Array.isArray(data)) {
+      for (const sec of data) {
+        for (const s of (sec.settings || [])) {
+          if (s.id) keys.add(s.id);
+        }
+      }
+    }
+  } catch {}
+  return keys;
+}
 
 function collectSectionSchemaKeys(text, file, findings, root) {
   const keys = new Set();
@@ -70,22 +84,26 @@ function main() {
   let args;
   try { args = parseArgs(process.argv); } catch (e) { console.error('ERROR: ' + e.message); usage(); process.exit(1); }
   if (args.help) { usage(); return; }
-  const settingsPath = path.join(args.root, 'config', 'settings.html');
+  const schemaPath = path.join(args.root, 'config', 'settings_schema.json');
+  const settingsHtmlPath = path.join(args.root, 'config', 'settings.html');
   const findings = [];
 
-  if (!fs.existsSync(settingsPath)) {
+  let availableKeys = new Set();
+  let configType = 'none';
+
+  if (fs.existsSync(schemaPath)) {
+    configType = 'config/settings_schema.json';
+    availableKeys = collectSchemaJsonKeys(fs.readFileSync(schemaPath, 'utf8'));
+  } else if (fs.existsSync(settingsHtmlPath)) {
+    configType = 'config/settings.html';
+    availableKeys = collectSettingsKeys(fs.readFileSync(settingsHtmlPath, 'utf8'));
+  } else {
     findings.push({
       severity: 'blocker',
-      rule: 'SETTINGS_HTML_MISSING',
-      location: 'config/settings.html',
-      message: 'settings.html not found.'
+      rule: 'SETTINGS_CONFIG_MISSING',
+      location: 'config/',
+      message: 'Neither config/settings_schema.json nor config/settings.html was found.'
     });
-  }
-
-  let availableKeys = new Set();
-  if (fs.existsSync(settingsPath)) {
-    const settingsHtml = fs.readFileSync(settingsPath, 'utf8');
-    availableKeys = collectSettingsKeys(settingsHtml);
   }
 
   const files = walkTheme(args.root, {
@@ -95,6 +113,7 @@ function main() {
 
   const allSectionKeys = new Set();
   const references = new Map();
+  const dynamicPrefixes = new Set();
 
   for (const file of files) {
     const text = fs.readFileSync(file, 'utf8');
@@ -103,16 +122,35 @@ function main() {
       if (!references.has(key)) references.set(key, []);
       references.get(key).push(file);
     }
+    for (const m of text.matchAll(/\{%-?\s*capture\s+([a-zA-Z0-9_]+)\s*-?%\}([\s\S]*?)\{%-?\s*endcapture\s*-?%\}/g)) {
+      const body = m[2].trim();
+      if (/\{\{[^}]+\}\}/.test(body)) {
+        const prefixMatch = body.match(/^([a-zA-Z0-9_]+?)(?:\{\{[^}]+\}\})/);
+        if (prefixMatch) dynamicPrefixes.add(prefixMatch[1]);
+      }
+    }
   }
 
   for (const [key, locations] of references) {
     if (!availableKeys.has(key)) {
-      findings.push({
-        severity: 'blocker',
-        rule: 'MISSING_SETTINGS_BOUNDARY',
-        location: locations[0].replace(args.root + path.sep, ''),
-        message: `settings.${key} used in code but not found in config/settings.html`
-      });
+      let isDynamic = false;
+      for (const prefix of dynamicPrefixes) {
+        if (key.startsWith(prefix)) {
+          isDynamic = true;
+          break;
+        }
+      }
+      if (/^(?:hero_slide_|home_feature_|footer_col_|testimonial_|banner_)\d+/.test(key)) {
+        isDynamic = true;
+      }
+      if (!isDynamic) {
+        findings.push({
+          severity: 'blocker',
+          rule: 'MISSING_SETTINGS_BOUNDARY',
+          location: locations[0].replace(args.root + path.sep, ''),
+          message: `settings.${key} used in code but not found in ${configType}`
+        });
+      }
     }
   }
 
@@ -121,15 +159,15 @@ function main() {
       findings.push({
         severity: 'warn',
         rule: 'ORPHAN_SETTING',
-        location: 'config/settings.html',
-        message: `settings.${key} defined in settings.html but not referenced in theme code`
+        location: configType,
+        message: `settings.${key} defined in ${configType} but not referenced in theme code`
       });
     }
   }
 
   console.log('# Settings Boundary Audit');
   console.log(`Root: ${args.root}`);
-  console.log(`settings.html fields: ${availableKeys.size}`);
+  console.log(`${configType} fields: ${availableKeys.size}`);
   console.log(`settings keys used (global): ${references.size}`);
   console.log(`section schema keys found: ${allSectionKeys.size}`);
   console.log(`Findings: ${findings.length}`);

@@ -1,1 +1,10 @@
-{{ content_for_layout }}
+<head>
+  {{ 'bad.css' | asset_url | stylesheet_tag }}
+  {{ 'stitch-banner.css' | asset_url | stylesheet_tag }}
+  {% if template contains 'product' %}{{ 'product.css' | asset_url | stylesheet_tag }}{% endif %}
+  <style>:root { --tw-space-md: 16px; }</style>
+</head>
+<body>
+  {% include 'icons-sprite' %}
+  {{ content_for_layout }}
+</body>

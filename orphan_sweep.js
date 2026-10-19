@@ -4,6 +4,26 @@ const fs = require('fs');
 const path = require('path');
 const { walkTheme } = require('./lib/theme-walk');
 
+const PROTECTED_UTILITIES = Object.freeze([
+  '.hidden',
+  '[hidden]',
+  '.sr-only',
+  '.visually-hidden',
+  '.button-content'
+]);
+
+function isProtectedUtility(selectorOrClass) {
+  if (!selectorOrClass) return false;
+  const norm = String(selectorOrClass).trim().toLowerCase();
+  for (const util of PROTECTED_UTILITIES) {
+    const u = util.toLowerCase();
+    if (norm === u) return true;
+    if (norm === u.replace(/^\./, '')) return true;
+    if (u.startsWith('.') && norm.startsWith(u)) return true;
+    if (norm.includes(u)) return true;
+  }
+  return false;
+}
 function parseArgs(argv) {
   const args = { root: path.resolve(process.cwd(), '..'), help: false, json: false };
   for (let i = 2; i < argv.length; i += 1) {
@@ -15,7 +35,6 @@ function parseArgs(argv) {
   }
   return args;
 }
-
 function usage() {
   console.log(`Usage:
   node orphan_sweep.js --root <theme-root> [--json]
@@ -24,6 +43,10 @@ Tim cac file orphan (khong reference) trong theme:
   - assets/* khong duoc reference qua asset_url, src=, url(), import.
   - snippets/* khong duoc include/render.
   - templates/sections/* khong duoc section trong layout/template.
+
+Protected utilities invariant:
+  Cac utility classes duoc bao ve tuyet doi khong bao gio bi danh dau xoa:
+  ${PROTECTED_UTILITIES.join(', ')}
 
 Output report. Khong tu xoa file. Agent xem va xoa thu cong.
 `);
@@ -41,8 +64,8 @@ function listFiles(dir) {
 
 function main() {
   const args = parseArgs(process.argv);
-  if (args.help) { usage(); process.exit(0); }
-  if (!fs.existsSync(args.root)) { console.error(`ERROR: --root not found`); process.exit(1); }
+  if (args.help) { usage(); return 0; }
+  if (!fs.existsSync(args.root)) { console.error(`ERROR: --root not found`); return 1; }
 
   // Read every theme code file once.
   const codeFiles = walkTheme(args.root, {
@@ -89,14 +112,14 @@ function main() {
   }
 
   if (args.json) {
-    console.log(JSON.stringify({ orphanAssets, orphanSnippets, orphanSections }, null, 2));
-    return;
+    console.log(JSON.stringify({ orphanAssets, orphanSnippets, orphanSections, protectedUtilities: PROTECTED_UTILITIES }, null, 2));
+    return 0;
   }
-
   console.log('# Orphan Sweep');
   console.log(`Root: ${args.root}`);
   console.log(`Code files scanned: ${codeFiles.length}`);
   console.log(`Orphan assets: ${orphanAssets.length} | snippets: ${orphanSnippets.length} | sections: ${orphanSections.length}`);
+  console.log(`Protected utilities guarded: ${PROTECTED_UTILITIES.join(', ')}`);
   if (orphanAssets.length) {
     console.log('\n## Orphan assets');
     for (const f of orphanAssets) console.log(`- ${f}`);
@@ -110,6 +133,20 @@ function main() {
     for (const f of orphanSections) console.log(`- ${f}`);
   }
   console.log('\nNote: heuristic match. Verify before deleting (dynamic concat names may register false positives).');
+  return 0;
 }
 
-try { main(); } catch (e) { console.error('ERROR: ' + e.message); process.exit(1); }
+if (require.main === module) {
+  try {
+    process.exitCode = main() ?? 0;
+  } catch (e) {
+    console.error('ERROR: ' + e.message);
+    process.exitCode = 1;
+  }
+}
+
+module.exports = {
+  PROTECTED_UTILITIES,
+  isProtectedUtility,
+  main
+};

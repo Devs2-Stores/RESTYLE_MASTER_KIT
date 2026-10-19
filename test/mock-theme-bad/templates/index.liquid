@@ -1,3 +1,15 @@
 <h1>{{ settings.hero_title }}</h1>
 <button>Add to cart</button>
 <p>{{ settings.missing_key }}</p>
+<p>{{ settings.bad_select | default: 'Fallback' }}</p>
+<p>{{ collections['featured'].title }}</p>
+<span setting-id="bad_img_bare" setting-type="image">{{ settings.bad_img_bare }}</span>
+<span setting-id="bad_img_missing_def" setting-type="image">{{ settings.bad_img_missing_def }}</span>
+<span setting-id="bad_img_data_bare" setting-type="image">{{ settings.bad_img_data_bare }}</span>
+<div class="pdp-only-badge">Cross-template CSS missing</div>
+<div class="tw-hero__unstyled-item">Unstyled BEM class</div>
+<svg><use href="#icon-missing-from-sprite"></use></svg>
+<foo-bar class="widget">Custom element inline root</foo-bar>
+<img src="{{ product.featured_image | img_url: '400x400' }}" alt="bad img_url size">
+<a href="/deal"><button type="button">Nested interactive</button></a>
+{% if settings.hero_title %}

@@ -48,7 +48,7 @@ function scanFile(file, root) {
     { id: 'HARDCODE_FONT', severity: 'warn', regex: /font-family\s*:\s*(?!var\()(?!inherit\b)(?!sans-serif\b)(?!serif\b)(?!monospace\b)["']?[A-Za-z]/g, message: 'Hardcoded font-family. Should use theme font variable.' },
     { id: 'INLINE_STYLE', severity: 'warn', regex: /style\s*=\s*["'][^"']{20,}["']/g, message: 'Inline style with significant rules. Move to CSS class/token.' },
     { id: 'ENGLISH_HARDCODE', severity: 'warn', regex: /(?:>|'|")\s*(Shop now|Buy now|Add to cart|View all|Read more|Learn more|Subscribe|See more|Load more|Show more|Contact us|Our story|About us|Sign up|Log in|Sign in|Free shipping|New arrival|Best seller|Sale|Sold out|Out of stock|View details|Continue shopping)\s*(?:<|'|")/gi, message: 'English hardcode candidate. Should be Vietnamese or settings-driven.' },
-    { id: 'WEBP_REF', severity: 'warn', regex: /\.webp\b/gi, message: 'Reference to webp asset. Theme assets must be jpg/png only.' }
+    { id: 'WEBP_REF', severity: 'warn', regex: /\.webp\b/gi, message: 'Reference to webp asset. Raster theme assets must use jpg/png; clean logo/UI icons may use SVG.' }
   ];
 
   // Server-side legacy SCSS compiler: lowercase min()/max() require numeric args;
@@ -62,6 +62,17 @@ function scanFile(file, root) {
     });
   }
 
+  // Shipped Liquid carries no comment blocks: no migration notes, no "legacy
+  // alias" explanations, no process commentary. Notes go to the improvement log.
+  if (/\.liquid$/i.test(file)) {
+    patterns.push({
+      id: 'LIQUID_COMMENT',
+      severity: 'warn',
+      regex: /\{%-?\s*comment\s*-?%\}/g,
+      message: 'Liquid comment block in shipped code. Delete it; process notes belong in the improvement log.'
+    });
+  }
+
   for (const pattern of patterns) {
     const regex = new RegExp(pattern.regex.source, pattern.regex.flags);
     let match;
@@ -72,6 +83,22 @@ function scanFile(file, root) {
         rule: pattern.id,
         location: `${path.relative(root, file)}:${line}`,
         message: pattern.message
+      });
+    }
+  }
+
+  // A snippet whose whole body is one include is a legacy alias stub. The content
+  // must live in the standard-named file and every reference point there directly.
+  if (/[\\/]snippets[\\/][^\\/]+\.liquid$/i.test(file)) {
+    const stripped = text
+      .replace(/\{%-?\s*comment\s*-?%\}[\s\S]*?\{%-?\s*endcomment\s*-?%\}/gi, '')
+      .trim();
+    if (/^\{%-?\s*include\s+['"][^'"]+['"][^%]*-?%\}$/.test(stripped)) {
+      findings.push({
+        severity: 'blocker',
+        rule: 'ALIAS_SNIPPET',
+        location: `${path.relative(root, file)}:1`,
+        message: 'Alias-only snippet (body is a single include). Inline the content into the standard file and delete the alias.'
       });
     }
   }
@@ -110,6 +137,29 @@ function main() {
         rule: 'WEBP_ASSET',
         location: path.relative(args.root, file),
         message: 'webp asset is forbidden. Re-encode to jpg/png (sharp, quality ~80).'
+      });
+    }
+  }
+  // Cross-file include integrity: every {% include 'x' %} must resolve to
+  // snippets/x.liquid. A leftover include to a deleted or renamed snippet
+  // renders a Liquid error on the live page.
+  const snippetNames = new Set(
+    walkTheme(args.root, { dirs: ['snippets'], ext: /\.liquid$/i })
+      .map((file) => path.basename(file, '.liquid'))
+  );
+  for (const file of files) {
+    if (!/\.liquid$/i.test(file)) continue;
+    const text = fs.readFileSync(file, 'utf8');
+    const includeRegex = /\{%-?\s*include\s+['"]([^'"]+)['"]/g;
+    let match;
+    while ((match = includeRegex.exec(text)) !== null) {
+      if (snippetNames.has(match[1])) continue;
+      const line = text.slice(0, match.index).split(/\r?\n/).length;
+      findings.push({
+        severity: 'blocker',
+        rule: 'BROKEN_INCLUDE',
+        location: `${path.relative(args.root, file)}:${line}`,
+        message: `Include target '${match[1]}' has no snippets/${match[1]}.liquid. Fix the reference or restore the file.`
       });
     }
   }

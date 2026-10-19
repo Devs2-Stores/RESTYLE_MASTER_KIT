@@ -1,0 +1,26 @@
+{
+  "budget": { "min": 6, "max": 10 },
+  "countExcludes": ["footer"],
+  "roles": ["hero", "category-rail", "product-rail", "banner", "usp", "testimonial", "blog", "newsletter", "brands", "footer"],
+  "roleKeywords": {
+    "hero": ["hero", "slideshow", "slider", "main-banner", "masthead"],
+    "category-rail": ["categor", "danh-muc", "collection-list", "collections"],
+    "product-rail": ["product", "featured", "bestseller", "best-seller", "new-arrival", "san-pham", "flash-sale", "deal"],
+    "banner": ["banner", "promo", "spotlight", "lookbook"],
+    "usp": ["usp", "trust", "benefit", "service", "policy", "chinh-sach", "cam-ket", "marquee"],
+    "testimonial": ["testimonial", "review", "danh-gia", "feedback", "cam-nhan"],
+    "blog": ["blog", "article", "tin-tuc", "bai-viet", "journal"],
+    "newsletter": ["newsletter", "subscribe", "dang-ky", "nhan-tin"],
+    "brands": ["brand", "partner", "thuong-hieu", "doi-tac", "logo"],
+    "footer": ["footer"]
+  },
+  "rules": {
+    "heroFirst": true,
+    "footerLast": true,
+    "maxConsecutiveBanners": 2,
+    "noAdjacentSameRole": true,
+    "newsletterAndBrandsAfterFirstProductRail": true,
+    "firstProductRailWithinViewports": 2,
+    "mobilePageHeightMaxViewports": 12
+  }
+}

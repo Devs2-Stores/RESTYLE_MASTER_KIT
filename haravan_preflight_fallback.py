@@ -6,13 +6,11 @@ import re
 from pathlib import Path
 import sys
 
-# Chi bat chu ky mojibake that (UTF-8 doc nham latin-1):
-# - 'Th\u00c6'  = "Th\u01b0" vo (\u00c6 khong dung sau Th trong tieng Viet chuan)
-# - '\u00c3'+chu cai = chuoi UTF-8 vo dien hinh (vd "\u00c3\u00a1" thay vi "\u00e1")
-# - '\u00c2'+ky tu la = "\u00c2\u00ab", "\u00c2\u00b0", "\u00c2"+nbsp... ; van tha "\u00c2m", "\u00c2u" (chu Viet hop le)
-# Khong dung literal tieng Viet thuong (Khu/D\u1ecd) lam chu ky \u2014 gay false positive.
+# Chi bat chu ky mojibake that (UTF-8 doc nham latin-1/cp1252): byte dau \u00c2/\u00c3/\u00c4/\u00c6
+# di kem byte tiep noi 0x80-0xBF ("\u00c3\u00a1", "\u00c6\u00b0", "\u00c2\u00a0"), "\u00c4\u2018" (d gach) va "\u00e1\u00ba"/"\u00e1\u00bb".
+# Khong bat "\u00c3"+chu cai: "\u0110\u00c3I", "M\u00c3", "NG\u00c3" la chu hoa tieng Viet hop le.
 MOJIBAKE_PATTERN = re.compile(
-    r'Th\xc6|\xc3[A-Za-z]|\xc2[^\sA-Za-z]'
+    r'[\xc2\xc3\xc4\xc6][\x80-\xbf]|\xc4\u2018|\xe1[\xba\xbb]'
 )
 
 LIQUID_EXTS = {'.liquid', '.html', '.js', '.css'}
@@ -57,11 +55,15 @@ def main() -> int:
     # 2. Required files
     required_files = [
         root / 'layout' / 'theme.liquid',
-        root / 'config' / 'settings.html',
     ]
     for file_path in required_files:
         if not file_path.exists():
             issues.append(f'[blocker] Missing file: {file_path.relative_to(root)}')
+
+    settings_schema = root / 'config' / 'settings_schema.json'
+    settings_html = root / 'config' / 'settings.html'
+    if not settings_schema.exists() and not settings_html.exists():
+        issues.append('[blocker] Missing settings configuration file: config/settings_schema.json or config/settings.html')
 
     # 3. settings_data.json presence (warn only — can be empty on fresh theme)
     settings_data = root / 'config' / 'settings_data.json'

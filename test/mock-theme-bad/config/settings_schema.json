@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Cấu hình chung",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "bad_img_bare",
+        "label": "Ảnh bare default",
+        "default": "bare-image.jpg"
+      },
+      {
+        "type": "image_picker",
+        "id": "bad_img_missing_def",
+        "label": "Ảnh thiếu default",
+        "default": ""
+      },
+      {
+        "type": "image_picker",
+        "id": "bad_img_data_bare",
+        "label": "Ảnh bare trong data",
+        "default": "https://cdn.hstatic.net/products/1/valid.jpg"
+      },
+      {
+        "type": "select",
+        "id": "bad_select",
+        "label": "Tuỳ chọn",
+        "default": "invalid_opt",
+        "options": [
+          { "value": "valid_opt", "label": "Hợp lệ" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "dead_unused_setting",
+        "label": "Setting mồ côi",
+        "default": "Không dùng"
+      }
+    ]
+  }
+]

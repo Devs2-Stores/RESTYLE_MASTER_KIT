@@ -198,7 +198,7 @@ function extractSections(html) {
     if (text) headings.push(text);
   }
   if (headings.length) {
-    return headings.slice(0, 12).map((text, index) => ({
+    return headings.map((text, index) => ({
       index: index + 1,
       name: slugify(text, `section-${index + 1}`),
       source: 'heading-fallback',
@@ -256,7 +256,7 @@ function extractCopyBlocks(html) {
       blocks.push({ type: pattern.type, text });
     }
   }
-  return blocks.slice(0, 40);
+  return blocks;
 }
 
 function readLinkedCss(html, htmlPath, seenPaths) {
@@ -338,13 +338,8 @@ function buildReport(args, parts) {
   return lines.join('\n');
 }
 
-function main() {
-  const args = parseArgs(process.argv);
-  if (args.help || !args.in || !args.out) { usage(); process.exit(args.help ? 0 : 1); }
-  if (!fs.existsSync(args.in)) { console.error(`ERROR: --in not found: ${args.in}`); process.exit(1); }
-  fs.mkdirSync(args.out, { recursive: true });
-
-  const inputs = readInput(args.in);
+function processInputs(inputPath, outDir, inputs) {
+  fs.mkdirSync(outDir, { recursive: true });
   const seenCssPaths = new Set(inputs.filter((item) => /\.css$/i.test(item.name)).map((item) => item.fullPath));
   let cleanedHtml = '';
   let cleanedCss = '';
@@ -378,7 +373,8 @@ function main() {
   const fontSizes = tokenizeFontSizes(cleanedCss);
   const spacings = tokenizeSpacing(cleanedCss);
   const placeholderList = [...placeholders];
-  const fidelityManifest = buildFidelityManifest(args, cleanedHtml, cleanedCss, {
+  const localArgs = { in: inputPath, out: outDir };
+  const fidelityManifest = buildFidelityManifest(localArgs, cleanedHtml, cleanedCss, {
     placeholders: placeholderList,
     colors,
     fonts,
@@ -386,22 +382,125 @@ function main() {
     spacings
   });
 
-  fs.writeFileSync(path.join(args.out, 'cleaned.html'), cleanedHtml, 'utf8');
-  fs.writeFileSync(path.join(args.out, 'cleaned.css'), cleanedCss, 'utf8');
-  fs.writeFileSync(path.join(args.out, 'tokens.json'), JSON.stringify({ colors, fonts, fontSizes, spacings }, null, 2), 'utf8');
-  fs.writeFileSync(path.join(args.out, 'stitch-fidelity.json'), JSON.stringify(fidelityManifest, null, 2), 'utf8');
+  fs.writeFileSync(path.join(outDir, 'cleaned.html'), cleanedHtml, 'utf8');
+  fs.writeFileSync(path.join(outDir, 'cleaned.css'), cleanedCss, 'utf8');
+  fs.writeFileSync(path.join(outDir, 'tokens.json'), JSON.stringify({ colors, fonts, fontSizes, spacings }, null, 2), 'utf8');
+  fs.writeFileSync(path.join(outDir, 'stitch-fidelity.json'), JSON.stringify(fidelityManifest, null, 2), 'utf8');
 
-  const report = buildReport(args, {
+  const report = buildReport(localArgs, {
     fileCount: inputs.length, linkedCssCount, removed, styleCount,
     placeholders: placeholderList, colors, fonts, fontSizes, spacings
   });
-  fs.writeFileSync(path.join(args.out, 'report.md'), report, 'utf8');
+  fs.writeFileSync(path.join(outDir, 'report.md'), report, 'utf8');
+
+  return {
+    fileCount: inputs.length,
+    linkedCssCount,
+    removed,
+    styleCount,
+    placeholders: placeholderList,
+    colors,
+    fonts,
+    fontSizes,
+    spacings,
+    fidelityManifest
+  };
+}
+
+function detectScreenSubdirs(inPath) {
+  const stat = fs.statSync(inPath);
+  if (!stat.isDirectory()) return [];
+  const entries = fs.readdirSync(inPath, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const screenDirs = [];
+  for (const ent of entries) {
+    const full = path.join(inPath, ent.name);
+    const files = collectFilesRecursive(full, []);
+    if (files.some((f) => /\.html?$/i.test(f.name))) {
+      screenDirs.push({
+        name: ent.name,
+        slug: slugify(ent.name, 'screen'),
+        fullPath: full,
+        files: files.map((item) => ({
+          name: path.relative(full, item.fullPath),
+          fullPath: item.fullPath,
+          text: item.text
+        }))
+      });
+    }
+  }
+  return screenDirs;
+}
+
+function main() {
+  const args = parseArgs(process.argv);
+  if (args.help || !args.in || !args.out) { usage(); process.exit(args.help ? 0 : 1); }
+  if (!fs.existsSync(args.in)) { console.error(`ERROR: --in not found: ${args.in}`); process.exit(1); }
+  fs.mkdirSync(args.out, { recursive: true });
+
+  const inputs = readInput(args.in);
+  const topResult = processInputs(args.in, args.out, inputs);
+
+  const screenSubdirs = detectScreenSubdirs(args.in);
+  if (screenSubdirs.length > 0) {
+    const screensOutRoot = path.join(args.out, 'screens');
+    fs.mkdirSync(screensOutRoot, { recursive: true });
+    const indexEntries = [];
+
+    for (const screen of screenSubdirs) {
+      const screenOutDir = path.join(screensOutRoot, screen.slug);
+      const res = processInputs(screen.fullPath, screenOutDir, screen.files);
+      indexEntries.push({
+        name: screen.name,
+        slug: screen.slug,
+        inputDir: screen.fullPath,
+        outputDir: screenOutDir,
+        fidelityPath: path.join(screenOutDir, 'stitch-fidelity.json'),
+        cleanedHtmlPath: path.join(screenOutDir, 'cleaned.html'),
+        cleanedCssPath: path.join(screenOutDir, 'cleaned.css'),
+        tokensPath: path.join(screenOutDir, 'tokens.json'),
+        sectionCount: res.fidelityManifest.sections.length,
+        copyBlockCount: res.fidelityManifest.copyBlocks.length,
+        assetSlotCount: res.fidelityManifest.assetSlots.length
+      });
+    }
+
+    const stitchIndex = {
+      generatedBy: 'stitch_consume.js',
+      input: args.in,
+      output: args.out,
+      screenCount: indexEntries.length,
+      screens: indexEntries,
+      aggregatedTokens: {
+        colors: topResult.colors,
+        fonts: topResult.fonts,
+        fontSizes: topResult.fontSizes,
+        spacings: topResult.spacings
+      }
+    };
+    fs.writeFileSync(path.join(args.out, 'stitch-index.json'), JSON.stringify(stitchIndex, null, 2), 'utf8');
+  }
 
   console.log('# Stitch Consume');
   console.log(`Input: ${args.in}`);
   console.log(`Output: ${args.out}`);
-  console.log(`Stripped CDN tags: ${removed} | Linked CSS: ${linkedCssCount} | Placeholders: ${placeholders.size} | Colors: ${colors.length} | Fonts: ${fonts.length}`);
+  if (screenSubdirs.length > 0) {
+    console.log(`Screens indexed: ${screenSubdirs.length} (see ${path.join(args.out, 'stitch-index.json')})`);
+  }
+  console.log(`Stripped CDN tags: ${topResult.removed} | Linked CSS: ${topResult.linkedCssCount} | Placeholders: ${topResult.placeholders.length} | Colors: ${topResult.colors.length} | Fonts: ${topResult.fonts.length}`);
   console.log(`See ${path.join(args.out, 'report.md')}`);
 }
 
-try { main(); } catch (e) { console.error('ERROR: ' + e.message); process.exit(1); }
+if (require.main === module) {
+  try { main(); } catch (e) { console.error('ERROR: ' + e.message); process.exit(1); }
+}
+
+module.exports = {
+  parseArgs,
+  extractSections,
+  extractCopyBlocks,
+  detectScreenSubdirs,
+  processInputs,
+  main
+};

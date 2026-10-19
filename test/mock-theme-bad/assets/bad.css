@@ -1,3 +1,9 @@
+:root { --tw-space-md: 24px; }
 .container { max-width: 1280px; }
+.hero .container { padding-left: 0; }
+.bleed-row { width: 100vw; margin-left: calc(50% - 50vw); }
+@media (max-width: 767px) { .override-card { display: block; } }
+.override-card { display: grid; }
 .btn { background: #ff0000; color: #ffffff; }
 .hero { background-image: url(hero.webp); }
+foo-bar { margin: 1rem 0; padding: 8px; border-top: 1px solid #000000; }
