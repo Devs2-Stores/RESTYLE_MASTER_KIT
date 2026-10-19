@@ -9,9 +9,9 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const puppeteer = require('C:/Users/Admin/Desktop/RESTYLE_MASTER_KIT/node_modules/puppeteer');
+const puppeteer = require('puppeteer');
 
-const ROOT = path.resolve(__dirname, '..', 'final-showcase');
+const ROOT = path.resolve(process.env.FINAL_SHOWCASE_DIR || path.join(process.cwd(), 'final-showcase'));
 const OUT = path.join(ROOT, 'features');
 const THEME = '1001501589';
 const BASE = 'https://f1genz-genz.myharavan.com';

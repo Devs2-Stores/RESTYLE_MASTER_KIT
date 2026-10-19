@@ -39,6 +39,8 @@
       "slot": "brand logo",
       "required": true,
       "out": "assets/logo.svg",
+      "w": 240,
+      "h": 80,
       "source": "brand-provided"
     },
     {
@@ -47,6 +49,8 @@
       "slot": "cart icon",
       "required": true,
       "out": "assets/icon-cart.svg",
+      "w": 24,
+      "h": 24,
       "source": "iconify",
       "name": "fa6-solid:cart-shopping"
     },
@@ -56,6 +60,8 @@
       "slot": "search icon",
       "required": true,
       "out": "assets/icon-search.svg",
+      "w": 24,
+      "h": 24,
       "source": "iconify",
       "name": "fa6-solid:magnifying-glass"
     },

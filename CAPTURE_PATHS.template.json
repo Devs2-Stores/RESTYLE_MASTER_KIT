@@ -6,6 +6,6 @@
   "article": "/blogs/news/REPLACE-WITH-REAL-HANDLE",
   "page-default": "/pages/about-us",
   "page-custom": "/pages/REPLACE-WITH-CUSTOM-PAGE",
-  "login": "/account/login",
-  "register": "/account/register"
+  "login": "",
+  "register": ""
 }

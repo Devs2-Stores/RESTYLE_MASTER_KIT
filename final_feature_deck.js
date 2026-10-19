@@ -10,7 +10,7 @@ const { readValue } = require('./lib/cli-args');
 
 function parseArgs(argv) {
   const args = {
-    outDir: path.resolve(process.cwd(), '..', 'final-showcase'),
+    outDir: '',
     features: '',
     file: '',
     brand: '',
@@ -84,7 +84,9 @@ function resolveImage(outDir, rel) {
   return full;
 }
 
-function pickFallbackImage(outDir, featureIndex) {
+const UTILITY_PAGE_REGEX = /(?:đăng\s*nhập|đăng\s*ký|login|register|404|cart|checkout|account|tài\s*khoản|search|tìm\s*kiếm|giỏ\s*hàng|thanh\s*toán)/i;
+
+function pickFallbackImage(outDir, featureIndex, feature = {}) {
   const candidates = [
     'Trang chủ.png',
     'Trang chủ-fullpage.png',
@@ -96,18 +98,28 @@ function pickFallbackImage(outDir, featureIndex) {
     path.join('pages', 'collection-desktop.png'),
     path.join('pages', 'product-desktop.png')
   ];
-  // Prefer pages/* in order if present (human-readable or legacy *-desktop.png)
+  // Prefer pages/* in order if present (excluding utility and auth pages)
   const pagesDir = path.join(outDir, 'pages');
   if (fs.existsSync(pagesDir)) {
     const pageFiles = fs.readdirSync(pagesDir)
-      .filter((name) => /\.png$/i.test(name) && !name.startsWith('_'))
+      .filter((name) => /\.png$/i.test(name) && !name.startsWith('_') && !UTILITY_PAGE_REGEX.test(name))
       .sort();
     if (pageFiles.length) {
+      const titleLower = String(feature.title || feature.name || '').toLowerCase();
+      if (titleLower) {
+        const words = titleLower.split(/\s+/).filter((w) => w.length >= 3);
+        const keywordMatch = pageFiles.find((name) => {
+          const nameLower = name.toLowerCase();
+          return words.some((w) => nameLower.includes(w));
+        });
+        if (keywordMatch) return path.join(pagesDir, keywordMatch);
+      }
       const pick = pageFiles[featureIndex % pageFiles.length];
       return path.join(pagesDir, pick);
     }
   }
   for (const rel of candidates) {
+    if (UTILITY_PAGE_REGEX.test(rel)) continue;
     const full = path.join(outDir, rel);
     if (fs.existsSync(full)) return full;
   }
@@ -173,15 +185,22 @@ function addSectionSlide(pptx, title, colors) {
   });
 }
 
-function buildBodyText(feature) {
-  const parts = [];
-  const body = feature.body || feature.description || '';
-  if (body) parts.push(String(body).trim());
-  const bullets = Array.isArray(feature.bullets) ? feature.bullets.filter(Boolean) : [];
-  if (bullets.length) {
-    parts.push(bullets.map((b) => `• ${String(b).trim()}`).join('\n'));
+function buildBodyText(feature, colors) {
+  // Returns pptxgenjs text runs so bullet markers can carry the accent color
+  // (single-color addText cannot color the `▸` separately from the bullet body).
+  const accent = (colors.accent || 'D4FF00').replace('#', '');
+  const runs = [];
+  const body = (feature.body || feature.description || '').trim();
+  if (body) {
+    runs.push({ text: body, options: { color: 'F2F2F2', fontSize: 14, fontFace: 'Arial' } });
+    runs.push({ text: '', options: { fontSize: 6, breakLine: true } }); // spacer
   }
-  return parts.join('\n\n');
+  const bullets = Array.isArray(feature.bullets) ? feature.bullets.filter(Boolean) : [];
+  bullets.forEach((b) => {
+    runs.push({ text: '▸ ', options: { color: accent, bold: true, fontSize: 14, fontFace: 'Arial' } });
+    runs.push({ text: ` ${String(b).trim()}`, options: { color: 'F2F2F2', fontSize: 13.5, fontFace: 'Arial', breakLine: true } });
+  });
+  return runs;
 }
 
 function readImageSize(imagePath) {
@@ -238,47 +257,55 @@ function fitContain(boxX, boxY, boxW, boxH, imgWpx, imgHpx, pad) {
 
 function addFeatureSlide(pptx, feature, imagePath, colors, index, total) {
   const slide = pptx.addSlide();
-  // Light card background for screenshot readability
+  const accent = (colors.accent || 'D4FF00').replace('#', '');
+  const bg = (colors.bg || '#111111').replace('#', '');
+  // Light card background for the screenshot well (right side)
   slide.addShape(pptx.shapes.RECTANGLE, {
     x: 0, y: 0, w: '100%', h: '100%',
-    fill: { color: colors.card.replace('#', '') }
+    fill: { color: (colors.card || '#FDF8F8').replace('#', '') }
   });
-  // Left accent bar
+  // Dark copy panel (left) — GenZ brand: lime title + white body on dark
+  const panelW = 4.6;
+  slide.addShape(pptx.shapes.RECTANGLE, {
+    x: 0, y: 0, w: panelW, h: '100%',
+    fill: { color: bg }
+  });
+  // Left accent bar (lime)
   slide.addShape(pptx.shapes.RECTANGLE, {
     x: 0, y: 0, w: 0.12, h: '100%',
-    fill: { color: colors.accent.replace('#', '') }
+    fill: { color: accent }
   });
 
   const title = feature.title || `Tính năng ${index + 1}`;
-  const body = buildBodyText(feature);
+  const bodyRuns = buildBodyText(feature, colors);
 
-  // Layout with safe margins (≥0.45" from slide edges) — no edge-hugging
+  // Layout with safe margins (≥0.45" from slide edges)
   // Slide = 13.333 x 7.5
   const copyX = 0.45;
-  const copyW = 4.15;
+  const copyW = panelW - 0.7;          // keep 0.25" inner gutter
   const imgX = 4.9;
   const imgY = 0.5;
-  const imgW = 7.85; // right edge ~12.75 → ~0.58" margin
-  const imgH = 6.5;  // bottom ~7.0 → ~0.5" margin
-  const framePad = 0.35; // breathing room — never flush to frame
+  const imgW = 7.85;                    // right edge ~12.75 → ~0.58" margin
+  const imgH = 6.5;                     // bottom ~7.0 → ~0.5" margin
+  const framePad = 0.35;
 
+  // Title — lime on dark, 24pt bold (bumped from 17pt)
   slide.addText(title, {
-    x: copyX, y: 0.4, w: copyW, h: 0.95,
-    fontSize: 17, fontFace: 'Arial', bold: true,
-    color: '111111', margin: 0, valign: 'top', wrap: true
+    x: copyX, y: 0.4, w: copyW, h: 1.2,
+    fontSize: 24, fontFace: 'Arial', bold: true,
+    color: accent, margin: 0, valign: 'top', wrap: true
   });
-  if (body) {
-    slide.addText(body, {
-      x: copyX, y: 1.45, w: copyW, h: 5.4,
-      fontSize: 11.5, fontFace: 'Arial',
-      color: '2A2A2A', margin: 0, valign: 'top',
-      wrap: true
+  if (bodyRuns.length) {
+    slide.addText(bodyRuns, {
+      x: copyX, y: 1.75, w: copyW, h: 5.1,
+      fontSize: 14, fontFace: 'Arial',
+      margin: 0, valign: 'top', wrap: true, lineSpacingMultiple: 1.1
     });
   }
   slide.addText(`${index + 1} / ${total}`, {
-    x: 11.0, y: 0.2, w: 1.8, h: 0.28,
-    fontSize: 11, fontFace: 'Arial',
-    color: '888888', align: 'right', margin: 0
+    x: copyX, y: 6.9, w: copyW, h: 0.3,
+    fontSize: 12, fontFace: 'Arial', bold: true,
+    color: accent, align: 'left', margin: 0
   });
 
   // Soft image well — letterbox bg so image never touches slide edge
@@ -340,6 +367,7 @@ async function main() {
     usage();
     return 0;
   }
+  if (!args.outDir) throw new Error('--out is required and must point to <theme-root>/final-showcase');
 
   const outDir = args.outDir;
   if (!fs.existsSync(outDir)) {
@@ -361,14 +389,18 @@ async function main() {
   addCoverSlide(pptx, brand, data, colors);
   addSectionSlide(pptx, data.sectionTitle || 'TÍNH NĂNG NỔI BẬT', colors);
 
-  const features = data.features;
+  if (data.features.length > 7) {
+    console.warn(`WARN: features capped at 7 (provided ${data.features.length}) for standard 10-slide sales deck.`);
+  }
+  const features = data.features.slice(0, 7);
   const missingImages = [];
   features.forEach((feature, index) => {
-    let imagePath = resolveImage(outDir, feature.image || feature.screenshot || '');
+    const explicitTarget = feature.background || feature.backgroundImage || feature.image || feature.screenshot || '';
+    let imagePath = resolveImage(outDir, explicitTarget);
     if (!imagePath) {
-      imagePath = pickFallbackImage(outDir, index);
-      if (!feature.image) missingImages.push(`${feature.title || index}: no image field, used fallback`);
-      else missingImages.push(`${feature.title || index}: missing ${feature.image}`);
+      imagePath = pickFallbackImage(outDir, index, feature);
+      if (!explicitTarget) missingImages.push(`${feature.title || index}: no image/background field, used fallback`);
+      else missingImages.push(`${feature.title || index}: missing ${explicitTarget}`);
     }
     addFeatureSlide(pptx, feature, imagePath, colors, index, features.length);
   });

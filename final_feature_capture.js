@@ -7,20 +7,23 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { readValue, parseFiniteNumber } = require('./lib/cli-args');
+const { readValue, readEnum, parseCsv, parseFiniteNumber } = require('./lib/cli-args');
 const { buildUrl } = require('./lib/path-utils');
 const { requirePuppeteer, sleep, navigateAndSettle, withPage } = require('./lib/puppeteer-utils');
 
 function parseArgs(argv) {
   const opts = {
     base: '',
-    out: path.resolve(process.cwd(), '..', 'final-showcase'),
+    out: '',
     shots: '',
     themeId: '',
     waitMs: 2500,
     viewportWidth: 1440,
     viewportHeight: 1200,
     deviceScaleFactor: 1,
+    only: [],
+    navTimeoutMs: undefined,
+    stage: 'none',
     help: false
   };
   for (let i = 2; i < argv.length; i += 1) {
@@ -33,6 +36,9 @@ function parseArgs(argv) {
     else if (arg === '--wait') { opts.waitMs = parseFiniteNumber(readValue(argv, i, '--wait'), '--wait'); i += 1; }
     else if (arg === '--viewport') { opts.viewportWidth = parseFiniteNumber(readValue(argv, i, '--viewport'), '--viewport'); i += 1; }
     else if (arg === '--height') { opts.viewportHeight = parseFiniteNumber(readValue(argv, i, '--height'), '--height'); i += 1; }
+    else if (arg === '--only') { opts.only = parseCsv(readValue(argv, i, '--only')); i += 1; }
+    else if (arg === '--nav-timeout') { opts.navTimeoutMs = parseFiniteNumber(readValue(argv, i, '--nav-timeout'), '--nav-timeout'); i += 1; }
+    else if (arg === '--stage') { opts.stage = readEnum(argv, i, '--stage', ['none', 'neutral']); i += 1; }
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return opts;
@@ -41,18 +47,30 @@ function parseArgs(argv) {
 function usage() {
   console.log(`Usage:
   node final_feature_capture.js --base <preview-url> --out <final-showcase> [--shots FEATURE_SHOTS.json]
+    [--only <id,id>] [--nav-timeout <ms>] [--stage none|neutral]
 
 Desktop-only feature region capture for PPTX slides.
 Writes PNGs under <out>/features/ and FEATURE_SHOTS_MANIFEST.json.
 
+Options:
+  --only <id,id>     Capture only the listed shot ids (unknown ids are an error).
+  --nav-timeout <ms> Navigation timeout per shot (default 60000).
+  --stage neutral    Generic staging: unstick headers and hide other fixed/sticky chrome that does not
+                     contain the shot target. none (default) only removes the Haravan preview bar.
+
+No theme-specific selector is built in. Widgets to hide and storage flags to pre-set are theme-owned:
+
 FEATURE_SHOTS.json shape:
 {
+  "kill": [".cookie-bar"],                              // optional: hidden/removed on every shot (default none)
+  "primeStorage": { "localStorage": { "popup_closed": "true" }, "sessionStorage": {} },   // optional
   "shots": [
     {
       "id": "flash-sale",
       "path": "/",
-      "selector": ".f1genz-genz-home__flash",
+      "selector": ".home-flash",
       "file": "features/flash-sale.png",
+      "kill": [".chat-bubble"],     // optional: extra hide list for this shot
       "click": ".open-btn",          // optional: click before capture
       "hover": ".menu-item",         // optional: hover before capture
       "keepOverlays": false,         // true = do not auto-dismiss popups
@@ -63,6 +81,22 @@ FEATURE_SHOTS.json shape:
   ]
 }
 `);
+}
+
+function toSelectorArray(value, label) {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string' || !item.trim())) {
+    throw new Error(`${label} must be an array of non-empty selector strings`);
+  }
+  return value.map((item) => item.trim());
+}
+
+function selectShots(shots, only) {
+  if (!only || !only.length) return shots;
+  const known = new Set(shots.map((shot) => shot.id).filter(Boolean));
+  const unknown = only.filter((id) => !known.has(id));
+  if (unknown.length) throw new Error(`--only names unknown shot id(s): ${unknown.join(', ')} (known: ${[...known].join(', ') || 'none'})`);
+  return shots.filter((shot) => only.includes(shot.id));
 }
 
 function withThemeId(pagePath, themeId) {
@@ -96,8 +130,8 @@ function sanitizeFile(rel, id) {
   return `features/${String(id || 'shot').replace(/[^a-z0-9_-]+/gi, '-').toLowerCase()}.png`;
 }
 
-async function dismissTransientOverlays(page) {
-  await page.evaluate(() => {
+async function dismissTransientOverlays(page, killSelectors = []) {
+  await page.evaluate((killList) => {
     const overlaySelectors = [
       '[role="dialog"]',
       '.modal',
@@ -107,31 +141,89 @@ async function dismissTransientOverlays(page) {
       '[class*="popup"]',
       '[class*="modal"]'
     ];
-    const closeSelectors = 'button, [role="button"], .close, [aria-label*="close" i], [title*="close" i], [class*="close"]';
+    const closeSelectors = '[data-action^="close"]:not([type="submit"]), [aria-label*="close" i]:not([type="submit"]), [aria-label*="đóng" i]:not([type="submit"]), .close:not([type="submit"]), button[data-dismiss]:not([type="submit"])';
     for (const selector of overlaySelectors) {
       for (const el of document.querySelectorAll(selector)) {
         const rect = el.getBoundingClientRect();
         if (rect.width < 80 || rect.height < 80) continue;
+        const cs = window.getComputedStyle(el);
+        if (cs.visibility === 'hidden' || cs.display === 'none' || Number(cs.opacity) === 0) continue;
+        if (el.hasAttribute('hidden') || el.closest('[hidden]')) continue;
         const closeButton = el.querySelector(closeSelectors);
-        if (closeButton) closeButton.click();
+        if (closeButton) {
+          const btnType = (closeButton.getAttribute('type') || closeButton.type || '').toLowerCase();
+          if (btnType !== 'submit') {
+            closeButton.click();
+          }
+        }
       }
     }
+    const inFixedLayer = (node) => {
+      for (let n = node; n && n !== document.documentElement; n = n.parentElement) {
+        if (getComputedStyle(n).position === 'fixed') return true;
+      }
+      return false;
+    };
     for (const el of document.querySelectorAll('[class*="overlay"], .modal-backdrop, .popup-overlay, .newsletter-overlay')) {
+      if (!el.matches('.modal-backdrop, .popup-overlay, .newsletter-overlay') && !inFixedLayer(el)) continue;
       el.style.display = 'none';
       el.style.visibility = 'hidden';
       el.style.pointerEvents = 'none';
     }
-  });
+
+    for (const sel of killList) {
+      for (const el of document.querySelectorAll(sel)) {
+        el.classList.remove('active', 'is-open');
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
+        el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+        try { el.remove(); } catch (_) {}
+      }
+    }
+    document.body.classList.remove('modal-open');
+  }, killSelectors);
   await sleep(400);
 }
 
 async function primeLazyAssets(page, waitMs) {
   await page.evaluate(() => {
+    for (const el of document.querySelectorAll('.swiper, [class*="swiper"]')) {
+      try {
+        if (el.swiper) {
+          if (el.swiper.autoplay && typeof el.swiper.autoplay.stop === 'function') el.swiper.autoplay.stop();
+          if (typeof el.swiper.slideTo === 'function') el.swiper.slideTo(0, 0, false);
+        }
+      } catch (_) {}
+    }
+    for (const el of document.querySelectorAll('[data-autoplay], [data-carousel], [data-slider], .hero-slider, .tw-hero-slider')) {
+      el.removeAttribute('data-autoplay');
+      const slides = el.querySelectorAll('.swiper-slide, .splide__slide, .slide, [data-slide]');
+      slides.forEach((s, idx) => {
+        s.style.setProperty('transition-duration', '0s', 'important');
+        s.style.setProperty('animation-duration', '0s', 'important');
+        if (idx === 0) {
+          s.classList.add('is-active', 'swiper-slide-active', 'active');
+          s.style.setProperty('opacity', '1', 'important');
+          s.style.setProperty('visibility', 'visible', 'important');
+        }
+      });
+    }
+    const srcAttrs = ['data-src', 'data-original', 'data-lazy', 'data-lazy-src'];
+    const srcsetAttrs = ['data-srcset', 'data-lazy-srcset'];
+    for (const source of document.querySelectorAll('source')) {
+      const srcset = srcsetAttrs.map((attr) => source.getAttribute(attr)).find(Boolean);
+      if (srcset && !source.getAttribute('srcset')) source.setAttribute('srcset', srcset);
+    }
     for (const img of document.images) {
       img.loading = 'eager';
-      const src = img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('data-lazy');
+      img.decoding = 'sync';
+      const src = srcAttrs.map((attr) => img.getAttribute(attr)).find(Boolean);
+      const srcset = srcsetAttrs.map((attr) => img.getAttribute(attr)).find(Boolean);
       const current = img.getAttribute('src') || '';
-      if (src && (!current || current.startsWith('data:'))) img.setAttribute('src', src);
+      const isPlaceholder = !current || current.startsWith('data:') || /blank|placeholder|transparent/i.test(current);
+      if (srcset && !img.getAttribute('srcset')) img.setAttribute('srcset', srcset);
+      if (src && isPlaceholder) img.setAttribute('src', src);
     }
   });
   const viewport = await page.evaluate(() => ({ height: window.innerHeight }));
@@ -140,14 +232,64 @@ async function primeLazyAssets(page, waitMs) {
     document.body.scrollHeight,
     document.documentElement.scrollHeight
   ));
-  for (let y = 0; y <= Math.min(pageHeight, 8000); y += step) {
+  for (let y = 0; y <= pageHeight; y += step) {
     await page.evaluate((scrollY) => window.scrollTo(0, scrollY), y);
     await sleep(120);
   }
+  try {
+    await page.waitForFunction(() => Array.from(document.images).every((img) => {
+      const style = window.getComputedStyle(img);
+      if (style.display === 'none' || style.visibility === 'hidden') return true;
+      const src = img.currentSrc || img.getAttribute('src') || '';
+      if (!src || src.startsWith('data:image/svg')) return true;
+      return img.complete && img.naturalWidth > 0;
+    }), { timeout: Math.max(3500, waitMs) });
+  } catch (_) {}
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll('[data-aos]')) {
+      el.classList.add('aos-animate');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+      el.style.visibility = 'visible';
+    }
+    if (typeof document.getAnimations === 'function') {
+      try {
+        for (const anim of document.getAnimations()) {
+          try { anim.finish(); } catch (_) {}
+        }
+      } catch (_) {}
+    }
+  });
   await page.evaluate(() => window.scrollTo(0, 0));
   await sleep(Math.min(600, Math.max(200, Math.floor(waitMs / 4))));
 }
 
+async function handleStorefrontPassword(page) {
+  const password = process.env.HARAVAN_STOREFRONT_PASSWORD || process.env.STOREFRONT_PASSWORD;
+  if (!password) return;
+  try {
+    const hasPasswordInput = await page.$('input[type="password"], input[name="password"]');
+    if (hasPasswordInput) {
+      console.log('Detected storefront password gate, entering credentials...');
+      await hasPasswordInput.type(password);
+      const submitBtn = await page.$('form button[type="submit"], form input[type="submit"], button[type="submit"]');
+      if (submitBtn) {
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 8000 }).catch(() => {}),
+          submitBtn.click()
+        ]);
+      } else {
+        await Promise.all([
+          page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 8000 }).catch(() => {}),
+          hasPasswordInput.press('Enter')
+        ]);
+      }
+      await sleep(1000);
+    }
+  } catch (err) {
+    console.warn(`WARN: storefront password handling failed: ${err.message}`);
+  }
+}
 function firstSelectorPart(selectorList) {
   return String(selectorList || '').split(',').map((s) => s.trim()).filter(Boolean)[0] || null;
 }
@@ -255,9 +397,9 @@ async function runShotSteps(page, shot) {
   }
 }
 
-async function hideChromeNoise(page) {
+async function hideChromeNoise(page, options = {}) {
   // Keep this light — never walk body * (causes protocol timeouts on large pages)
-  await page.evaluate(() => {
+  await page.evaluate((extraKill, stage, keepSelectorList) => {
     const kill = [
       '#preview-bar-iframe',
       '.preview-bar',
@@ -268,29 +410,44 @@ async function hideChromeNoise(page) {
       '#PBarNextFrame',
       '.hrv-theme-preview',
       '[id*="PreviewBar"]',
-      '[class*="PreviewBar"]'
+      '[class*="PreviewBar"]',
+      '#haravan-notification',
+      ...extraKill
     ];
     for (const sel of kill) {
       for (const el of document.querySelectorAll(sel)) {
+        el.classList.remove('active', 'is-open');
         el.style.setProperty('display', 'none', 'important');
         el.style.setProperty('visibility', 'hidden', 'important');
         el.style.setProperty('pointer-events', 'none', 'important');
+        try { el.remove(); } catch (_) {}
       }
     }
+    const keepParts = String(keepSelectorList || '').split(',').map((s) => s.trim()).filter(Boolean);
+    const holdsTarget = (el) => keepParts.some((sel) => {
+      try { return el.matches(sel) || Boolean(el.querySelector(sel)); } catch (_) { return false; }
+    });
     // Fixed bottom preview strip (Haravan/Shopify) — only check a few fixed/sticky nodes
-    const candidates = document.querySelectorAll('div, section, aside, footer');
+    const candidates = document.querySelectorAll(stage === 'neutral' ? 'header, nav, div, section, aside, footer, a, button' : 'div, section, aside, footer');
     let checked = 0;
     for (const el of candidates) {
       if (checked > 80) break;
       const style = window.getComputedStyle(el);
       if (style.position !== 'fixed' && style.position !== 'sticky') continue;
       checked += 1;
-      const t = (el.textContent || '').trim().slice(0, 80);
-      if (/currently previewing the theme|Minimize|Remove preview/i.test(t)) {
+      const t = (el.textContent || '').trim().slice(0, 120);
+      if (/currently previewing the theme|đang xem trước|Minimize|Remove preview|bỏ xem trước|AI hỗ trợ/i.test(t)) {
         el.style.setProperty('display', 'none', 'important');
+      } else if (stage === 'neutral' && !holdsTarget(el)) {
+        if (el.matches('header, [role="banner"]')) {
+          el.style.setProperty('position', 'relative', 'important');
+          el.style.setProperty('top', 'auto', 'important');
+        } else {
+          el.style.setProperty('display', 'none', 'important');
+        }
       }
     }
-  });
+  }, options.kill || [], options.stage || 'none', options.keepSelector || '');
 }
 
 async function resolveMatchedSelector(page, selectorList) {
@@ -320,6 +477,8 @@ async function clipUnion(page, selectorList, padding, maxHeight) {
     let maxX = -Infinity;
     let maxY = -Infinity;
     let found = false;
+    const scrollX = window.scrollX || window.pageXOffset || 0;
+    const scrollY = window.scrollY || window.pageYOffset || 0;
     for (const sel of parts) {
       for (const el of document.querySelectorAll(sel)) {
         const style = window.getComputedStyle(el);
@@ -327,19 +486,17 @@ async function clipUnion(page, selectorList, padding, maxHeight) {
         const rect = el.getBoundingClientRect();
         if (rect.width < 2 || rect.height < 2) continue;
         found = true;
-        minX = Math.min(minX, rect.left);
-        minY = Math.min(minY, rect.top);
-        maxX = Math.max(maxX, rect.right);
-        maxY = Math.max(maxY, rect.bottom);
+        minX = Math.min(minX, rect.left + scrollX);
+        minY = Math.min(minY, rect.top + scrollY);
+        maxX = Math.max(maxX, rect.right + scrollX);
+        maxY = Math.max(maxY, rect.bottom + scrollY);
       }
     }
     if (!found) return null;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
     let x = Math.max(0, Math.floor(minX - pad));
     let y = Math.max(0, Math.floor(minY - pad));
-    let w = Math.min(vw - x, Math.ceil(maxX - minX + pad * 2));
-    let h = Math.min(vh - y, Math.ceil(maxY - minY + pad * 2));
+    let w = Math.ceil(maxX - minX + pad * 2);
+    let h = Math.ceil(maxY - minY + pad * 2);
     if (Number.isFinite(maxH) && maxH > 0 && h > maxH) h = maxH;
     if (w < 2 || h < 2) return null;
     return { x, y, width: w, height: h };
@@ -351,6 +508,7 @@ async function captureShot(browser, opts, shot, outDir) {
   const pagePath = withThemeId(shot.path || '/', opts.themeId || shot.themeId || '');
   const url = buildUrl(opts.base, pagePath);
   const relFile = sanitizeFile(shot.file, id);
+  const killSelectors = [...(opts.kill || []), ...toSelectorArray(shot.kill, `shot ${id} kill`)];
   const filePath = path.join(outDir, relFile);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
 
@@ -365,33 +523,34 @@ async function captureShot(browser, opts, shot, outDir) {
     deviceScaleFactor: shot.deviceScaleFactor || opts.deviceScaleFactor
   };
 
+  const isMobileViewport = viewport.width <= 480;
   return await withPage(browser, {
     viewport: {
       width: viewport.width,
       height: viewport.height,
       deviceScaleFactor: viewport.deviceScaleFactor,
-      isMobile: false,
-      hasTouch: false
+      isMobile: isMobileViewport,
+      hasTouch: isMobileViewport
     },
     beforeNavigate: async (page) => {
-      await page.evaluateOnNewDocument((keep) => {
+      await page.evaluateOnNewDocument((keep, storage) => {
+        if (keep) return;
         try {
-          if (!keep) {
-            window.localStorage.setItem('newsletter_popup_closed_v2', 'true');
-            window.sessionStorage.setItem('newsletter_popup_closed_v2', 'true');
-          }
+          for (const [key, value] of Object.entries(storage.localStorage || {})) window.localStorage.setItem(key, String(value));
+          for (const [key, value] of Object.entries(storage.sessionStorage || {})) window.sessionStorage.setItem(key, String(value));
         } catch (_) {}
-      }, keepOverlays);
+      }, keepOverlays, opts.primeStorage || {});
     }
   }, async (page) => {
-    await navigateAndSettle(page, url, { waitMs: 0 });
+    await navigateAndSettle(page, url, { waitMs: 0, navTimeout: opts.navTimeoutMs });
+    await handleStorefrontPassword(page);
     await primeLazyAssets(page, waitMs);
-    if (!keepOverlays) await dismissTransientOverlays(page);
-    await hideChromeNoise(page);
+    if (!keepOverlays) await dismissTransientOverlays(page, killSelectors);
+    await hideChromeNoise(page, { kill: killSelectors, stage: opts.stage, keepSelector: shot.selector || shot.unionSelectors || '' });
     if (waitMs > 0) await sleep(waitMs);
 
     await runShotSteps(page, shot);
-    await hideChromeNoise(page);
+    await hideChromeNoise(page, { kill: killSelectors, stage: opts.stage, keepSelector: shot.selector || shot.unionSelectors || '' });
 
     if (fullPage || (!shot.selector && !shot.unionSelectors)) {
       await page.screenshot({ path: filePath, fullPage: true, type: 'png' });
@@ -414,7 +573,7 @@ async function captureShot(browser, opts, shot, outDir) {
       }
       const clip = await clipUnion(page, shot.unionSelectors, padding, maxClipHeight);
       if (clip) {
-        await page.screenshot({ path: filePath, type: 'png', clip });
+        await page.screenshot({ path: filePath, type: 'png', clip, captureBeyondViewport: true });
         return { id, file: relFile, url, mode: 'union-clip', selector: shot.unionSelectors, clip };
       }
       console.warn(`  WARN unionSelectors empty — falling back to selector/element`);
@@ -442,7 +601,7 @@ async function captureShot(browser, opts, shot, outDir) {
           clip.x = 0;
           clip.width = viewport.width;
         }
-        await page.screenshot({ path: filePath, type: 'png', clip });
+        await page.screenshot({ path: filePath, type: 'png', clip, captureBeyondViewport: true });
         return { id, file: relFile, url, mode: 'region-clip', selector: matchedSelector, clip };
       }
     }
@@ -481,9 +640,17 @@ async function main() {
     console.error('\nERROR: --base is required.');
     return 1;
   }
+  if (!opts.out) {
+    usage();
+    console.error('\nERROR: --out is required and must point to <theme-root>/final-showcase.');
+    return 1;
+  }
 
   const shotsPath = opts.shots || path.join(opts.out, 'FEATURE_SHOTS.json');
   const { meta, shots } = loadShots(shotsPath);
+  const selectedShots = selectShots(shots, opts.only);
+  opts.kill = toSelectorArray(meta.kill, 'FEATURE_SHOTS.kill');
+  opts.primeStorage = meta.primeStorage && typeof meta.primeStorage === 'object' ? meta.primeStorage : {};
   fs.mkdirSync(opts.out, { recursive: true });
   fs.mkdirSync(path.join(opts.out, 'features'), { recursive: true });
 
@@ -496,7 +663,7 @@ async function main() {
   const results = [];
 
   try {
-    for (const shot of shots) {
+    for (const shot of selectedShots) {
       const id = shot.id || shot.file || 'shot';
       process.stdout.write(`Capturing feature ${id} ... `);
       try {
@@ -518,6 +685,8 @@ async function main() {
     themeId: opts.themeId || meta.themeId || null,
     shotsFile: shotsPath,
     desktopOnly: true,
+    stage: opts.stage,
+    only: opts.only,
     results
   };
   const manifestPath = path.join(opts.out, 'FEATURE_SHOTS_MANIFEST.json');
@@ -532,9 +701,20 @@ async function main() {
   return failed.length ? 1 : 0;
 }
 
-main().then((code) => {
-  process.exitCode = code;
-}).catch((error) => {
-  console.error(`ERROR: ${error.message}`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().then((code) => {
+    process.exitCode = code;
+  }).catch((error) => {
+    console.error(`ERROR: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  dismissTransientOverlays,
+  clipUnion,
+  captureShot,
+  parseArgs,
+  selectShots,
+  toSelectorArray
+};
