@@ -1,6 +1,6 @@
 ﻿# RESTYLE_MASTER_KIT
 
-**Version:** 2.6.0
+**Version:** 2.12.0
 
 Bộ khung canonical để chạy dự án Haravan theme restyle từ đầu đến cuối.
 Kit bao gồm workflow docs, audit scripts, QA automation, và final export tooling.
@@ -14,6 +14,8 @@ Kit bao gồm workflow docs, audit scripts, QA automation, và final export tool
 > **Muốn chọn luồng A/B/C/D?** Đọc `RUN_GUIDE.md` — playbook 4 luồng theo scenario.
 >
 > **Đã cài global skill `haravan-stitch-full-run`?** Có thể gọi skill đó như workflow conductor A-Z; nếu chưa, dùng `stitch:full` trực tiếp theo flow docs bên dưới.
+>
+> **Nguồn sự thật của skill**: bản canonical của mọi skill pipeline là `C:\Users\Admin\.claude\skills\<skill>\` (OMP nạp thư mục này). `E:\Work\themes\.claude\skills\` và `C:\Users\Admin\.agents\skills\` chỉ là mirror; không sửa tay, chỉ tạo lại bằng `node skills_sync.js` (danh sách `PIPELINE_SKILLS`). Kiểm drift: `node skills_sync.js --all --check`.
 
 ---
 
@@ -46,7 +48,9 @@ Chi tiết từng bước: xem `HARAVAN_THEME_RESTYLE_WORKFLOW.md`.
 
 | Script | Dùng để | Command |
 |---|---|---|
-| `run_preflight.js` | Kiểm cấu trúc theme trước khi làm | `npm run preflight -- --root <path>` |
+| `run_preflight.js` | Kiểm cấu trúc theme, API keys (process.env / HKCU), .haravan-cli_local.json, duplicate watchers | `npm run preflight -- --theme <path>` |
+| `stitch_generate.js` | Sinh màn hình qua @google/stitch-sdk, lọc DESIGN/IMAGE, gate prompt <= 1.5KB/6 sections, render 1440px PNG | `npm run stitch:generate -- --prompt-file <f> --out <dir> [--project <id>] [--render]` |
+| `haravan_lint.js` | Quét cú pháp cấm Haravan (\| json, continue, render, schema, container, settings parity, tag balance) | `npm run lint:haravan -- --root <path>` |
 | `stitch_consume.js` | Strip CDN/Tailwind, follow linked CSS from HTML input, và trích candidate token từ Stitch export | `npm run stitch:consume -- --in <export> --out <scratch>` |
 | `design_token_extract.js` | Map token Stitch vs theme token cũ, sinh `mapping.md`, `mapping.json`, `tokens.css`, `stitch-fidelity-token-map.json` | `npm run token:extract -- --theme <root> --stitch-tokens <tokens.json> --out <dir>` |
 | `section_scaffold.js` | Gen Liquid section + snippet boilerplate từ JSON config | `npm run section:scaffold -- --config <config.json> --root <theme>` |
@@ -54,6 +58,7 @@ Chi tiết từng bước: xem `HARAVAN_THEME_RESTYLE_WORKFLOW.md`.
 | `liquid_content_audit.js` | Quét anti-pattern trong Liquid/CSS/JS | `npm run audit:content -- --root <path>` |
 | `settings_boundary_audit.js` | Kiểm settings.html vs Liquid usage | `npm run audit:settings-boundary -- --root <path>` |
 | `css_token_audit.js` | Quét hardcode color/font/spacing chưa dùng token | `npm run audit:css-tokens -- --root <path>` |
+| `remake_contract_audit.js` | Chặn status giả, mất feature, merchant fallback và dual CSS ownership | `npm run audit:remake-contract -- --root <path> [--final]` |
 | `audit:restyle` (combo) | Chạy 3 audit content + settings + css-tokens trong 1 lệnh | `npm run audit:restyle -- --root <path>` |
 | `orphan_sweep.js` | Tìm asset/snippet/section không reference | `npm run orphan:sweep -- --root <path>` |
 | `qa_restyle_check.js` | Screenshot + overflow + a11y cơ bản + flow QA | `npm run qa -- --base <preview-url>` |
@@ -61,12 +66,16 @@ Chi tiết từng bước: xem `HARAVAN_THEME_RESTYLE_WORKFLOW.md`.
 | `stitch_pipeline_runner.js` | Single-entry Stitch → Haravan runner. Dry-run mặc định, execute chỉ chạy safe prefix và dừng ở checkpoint cần approval. | `npm run stitch:full -- --theme <theme> --stitch <export> [--base <preview-url>] [--execute]` |
 | `perf_check.js` | Bundle size + Lighthouse (optional) | `npm run perf:check -- --root <path> [--lighthouse --base <url> --paths /]` |
 | `visual_diff.js` | So sánh % pixel khác giữa baseline và preview | `npm run visual:diff -- --before <dir-or-url> --after <dir-or-url>` |
-| `workflow_final_guard.js` | Gate cuối trước handoff | `npm run guard:final -- --root <path>` |
-| `theme_push.js` | Wrapper Haravan CLI push (unpublished/live) | `npm run theme:push -- --root <path> [--target unpublished\|live]` |
-| `final_showcase_capture.js` | Chụp final home showcase + multi-template pages (pages/* desktop-only mặc định) | `npm run final:capture -- --base <url> --all-templates --paths-file CAPTURE_PATHS.json` |
+| `workflow_final_guard.js` | Gate cuối trước handoff (chặn cả dòng ledger `structural`/`QA-debt` chưa `CERTIFIED`, trừ khi có `--allow-structural-qa "<reason>"`) | `npm run guard:final -- --root <theme> --out <theme>/final-showcase` |
+| `qa_gate.js` | Gate QA độc lập AntiFan: ô màn hình × độ rộng từ hợp đồng, receipt đúng root/còn mới, coverage floor, probe registry (exit 0 PASS / 1 FAIL / 2 UNMEASURED) | `npm run qa:gate -- --root <theme> --contract <theme>/deliverables/FULL_REMAKE_CONTRACT.json --base <shop-url> --themeid <id> --coverage-floor 1` |
+| `backlog_audit.js` | Kiểm `registry/backlog.json`: mỗi mục union có đúng một dòng, trạng thái và lý do hợp lệ, P0 mở thì FAIL | `npm run audit:backlog` |
+| `contract_promote.js` | Nâng từng mục hợp đồng (screen, feature, preview) và dòng ledger đang pending, chỉ khi có file evidence thật; `--dry-run` để xem trước | `node contract_promote.js --root <theme> --screen <name> --status <value> --evidence <file.json>` |
+| `theme_package.js` | Tạo ZIP local cho checkpoint upload draft | `npm run theme:package -- --root <theme> --out <scratch>/preview` |
+| `final_showcase_capture.js` | Chụp final home showcase + multi-template pages (pages/* desktop-only mặc định) | `npm run final:capture -- --base <url> --out <theme>/final-showcase --all-templates --paths-file <theme>/final-showcase/CAPTURE_PATHS.json` |
 | `final_feature_capture.js` | Chụp desktop đúng vùng từng tính năng (selector/click/hover) cho PPTX | `npm run final:feature-capture -- --base <url> --out final-showcase --shots FEATURE_SHOTS.json` |
 | `final_feature_deck.js` | Build PPTX tính năng nổi bật từ FEATURES.json + screenshots | `npm run final:pptx -- --out <final-showcase>` |
 | `final_theme_export.js` | Export theme zip qua Haravan CLI | `npm run final:export -- --root <path>` |
+| `settings_merge.js` | Merge patch vào `settings_schema.json`/`settings_data.json`. Chế độ một key không cần manifest; cổng mất key (`--max-key-loss`, mặc định 0) chặn ghi nếu merge xoá key; từ chối manifest/patch nằm dưới thư mục có tên chứa `backup` | `node settings_merge.js --root <theme> --key <id> --value <json> [--write-data --allow-settings-data --backup-dir <dir>]` |
 
 ### Chạy một entrypoint full-flow có checkpoint
 
@@ -84,7 +93,7 @@ npm run stitch:full -- --theme <theme> --stitch <single-screen-export> --mode si
 npm run stitch:full -- --theme <theme> --base <preview-url> --mode audit-led
 ```
 
-Nếu **chưa có Stitch export**, generate/export trước bằng `/ck:stitch`, rồi mới đưa output đó vào `stitch:full` runner-conversion stage.
+Nếu **chưa có Stitch export**, generate/export trước bằng `/ak:stitch`, rồi mới đưa output đó vào `stitch:full` runner-conversion stage.
 
 Lưu ý: đây **không phải** one-click blind automation. Runner sẽ dừng ở các checkpoint như asset approval, stitch gap resolution, permission boundary, và visual approval.
 
@@ -174,7 +183,7 @@ Sau khi chạy final scripts, output trong `final-showcase/`:
 - `FEATURES.json` + `<brand>-features.pptx` — deck tính năng nổi bật (`final:pptx`)
 - `*.zip` — theme export (nếu dùng `final_theme_export.js`)
 
-`workflow_final_guard.js` block handoff nếu thiếu home PNG, PNG hỏng/kích thước sai, hoặc `THEME_DESCRIPTION.html` chưa chuẩn. Thêm `--require-pptx` / `--require-zip` khi handoff cần deck/zip.
+`workflow_final_guard.js` block handoff nếu thiếu home PNG, PNG hỏng/kích thước sai, `THEME_DESCRIPTION.html` chưa chuẩn, full-remake contract còn pending, hoặc bảng ledger còn dòng `Status` chứa `structural`/`QA-debt` (chưa `CERTIFIED` qua `theme.qa_validate`; chỉ cho qua dưới dạng `WARNING` khi truyền `--allow-structural-qa "<reason>"`). Ledger khai `rebuild 100%` bắt buộc có `deliverables/FULL_REMAKE_CONTRACT.json`; status `converted` chỉ hợp lệ sau preview/final evidence. Thêm `--require-pptx` / `--require-zip` khi handoff cần deck/zip.
 
 ---
 
@@ -202,23 +211,23 @@ npm run audit:restyle -- --root <theme>
 npm run orphan:sweep -- --root <theme>
 
 # 8. Push dev smoke test
-npm run theme:push -- --root <theme> --target unpublished
+npm run theme:package -- --root <theme> --out <scratch>/preview
 
 # 9. QA preview Puppeteer
-npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample
+npm run qa -- --base <preview-url> --paths /,/collections/all,<real-product-path>
 
 # 10. Visual diff so với baseline (nếu có)
 npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths / --capture
 
 # 11. Final
-npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
+npm run final:capture -- --base <preview-url> --out <theme>/final-showcase --all-templates --paths-file <theme>/final-showcase/CAPTURE_PATHS.json
 # Feature-region desktop shots for PPTX (not full-page crops)
 # Copy FEATURE_SHOTS.template.json → final-showcase/FEATURE_SHOTS.json and set real selectors
 npm run final:feature-capture -- --base <preview-url> --out final-showcase --shots final-showcase/FEATURE_SHOTS.json
 # Eyeball features/* ; fill FEATURES.json (title/body/bullets/image) from FEATURES.template.json
 npm run final:pptx -- --out final-showcase
 npm run final:export -- --root <theme>
-npm run guard:final -- --root <theme> --require-pptx
+npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip --require-pptx
 ```
 
 ---

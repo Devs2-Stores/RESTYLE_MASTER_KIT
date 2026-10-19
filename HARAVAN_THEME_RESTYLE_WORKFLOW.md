@@ -26,7 +26,7 @@ Khi user nói "đọc workflow", "làm theo workflow", "restyle theme", "làm l�
 - Layout mới từ design phải rebuild thành module sạch theo design 100%, không replace/overwrite nửa vời vào layout cũ.
 - **CSS/JS mới viết vào file CÓ SẴN đúng template** (home → `index.*`, shell/global → `main.*`, blog → `blog.*`, article → `article.*`, template khác → cặp file riêng của nó). Không tạo file asset mới song song khi theme đã có slot; file mới = deviation phải log + duyệt.
 - **Naming theo brand theme**: tên file/ảnh/class/settings key ship ra không được chứa tên design tool ("stitch"...); đặt theo ngữ nghĩa/brand của theme.
-- **Asset jpg/png only — cấm webp**; ảnh generate/export phải nén (sharp q~80, đúng kích thước slot) trước khi vào `assets/`.
+- **Raster jpg/png — cấm webp**; SVG chỉ dành cho logo/icon sạch có kích thước rõ ràng; ảnh generate/export phải nén (sharp q~80, đúng kích thước slot) trước khi vào `assets/`.
 - **Đơn vị REM-first**: rem cho type/spacing/padding/gap (px ÷ 16), em chỉ cho padding nội bộ button/badge/icon-theo-text, px cho hairline/breakpoint. `html { font-size: 100% }`, cấm hack 62.5%.
 - **Sửa thẳng file đích, không wrapper snippet dùng 1 chỗ**; snippet mới chỉ khi tái dùng 2+ chỗ hoặc theme đã có pattern tách sẵn.
 - Khi thay CSS/JS, xóa selector/init/block orphan đã xác minh không còn dùng để tránh phình asset và double-init.
@@ -196,22 +196,24 @@ Mục tiêu của phần này là chốt đủ thông tin ngay từ đầu để
 
 > Bắt buộc đọc `STITCH_FIDELITY.md` trước khi implement. Mục đó là contract chống agent tự chế ra layout/section/copy/màu khác Stitch. Phạm vi là **template-first conversion** (§1A của contract): dựng markup mới theo design, không phải "visual layer" phủ lên layout cũ.
 
-1. Dùng Stitch làm source of truth visual + structure; không ship raw Tailwind/CDN/placeholder trực tiếp. Khi authoring prompt Stitch, dùng `STITCH_PROMPT.template.md` với GLOBAL RULES (đủ mọi trang + modal + mobile, SHELL SPEC, MOTION SPEC).
+1. Dùng Stitch làm source of truth visual + structure; không ship raw Tailwind/CDN/placeholder trực tiếp. Khi authoring prompt Stitch, dùng `STITCH_PROMPT.template.md`, chọn screen/capability theo scope, rồi áp SHELL SPEC và MOTION SPEC nhất quán.
 2. Chạy `node stitch_consume.js --in <stitch-export> --out scratch/stitch/<screen>` để strip CDN, extract token candidate.
 3. Đọc `scratch/stitch/<screen>/report.md`: confirm token color/font/spacing trước khi map vào theme `:root`.
 4. Lập **Stitch inventory + mapping table** trong ledger: từng section Stitch → từng `sections/*.liquid` + snippet.
-5. Lập **asset-plan.json**: list mọi image slot Stitch, ratio, nguồn. Chạy `node asset_pipeline.js --plan scratch/asset-plan.json --root <theme>` để biết asset nào missing/wrong-size.
-6. Nếu design có 1280, map sang `page-width`/container hoặc 1920 theo rule đã chốt.
-7. Token/font/icon phải hợp với theme hiện tại; không tạo hệ mới nếu hệ cũ đủ dùng. Tên token dùng default `--color-primary/surface/text/muted/border/accent/sale/success`.
-8. Asset placeholder phải đổi sang asset thật hoặc asset demo đúng kích thước qua `asset_pipeline.js`.
-9. Content demo phải chuyển vào settings/data thật nếu có boundary phù hợp.
-10. Animation/JS của Stitch phải đổi sang helper/theme-native.
-11. Markup phải sạch: không dư wrapper, không để text demo kỹ thuật lộ ra storefront.
-12. CSS generated phải được lọc lại thủ công: bỏ property không có tác dụng, giới hạn icon/SVG/media size, không giữ reset/framework lạ.
-13. Implement section-by-section. Sau mỗi section, so sánh thị giác với Stitch screen tương ứng. Nếu lệch không có lý do trong allowed deviation, **dừng và hỏi user trước khi tiếp tục**.
-14. Khi xong page, chạy `node visual_diff.js --before <baseline-dir> --after <preview-url> --paths <list>` để đo % regression so với Stitch reference (nếu có baseline) hoặc so với checkpoint cũ.
-15. Trước khi push, chạy `node orphan_sweep.js --root <theme>` để gỡ asset/snippet/section orphan đã thay thế.
-16. Push dev qua `node theme_push.js --target unpublished` smoke test trước khi final.
+5. Với full remake, tạo `<theme>/deliverables/FULL_REMAKE_CONTRACT.json` từ template. Status chỉ đi theo `planned` → `implemented-static` → `verified-preview` → `approved-final`; không dùng `converted` cho source-only.
+6. Lập **asset-plan.json**: list mọi image slot Stitch, ratio, nguồn. Chạy `node asset_pipeline.js --plan scratch/asset-plan.json --root <theme>` để biết asset nào missing/wrong-size.
+7. Nếu design có 1280, map sang `page-width`/container hoặc 1920 theo rule đã chốt.
+8. Token/font/icon phải hợp với theme hiện tại; không tạo hệ mới nếu hệ cũ đủ dùng. Tên token dùng default `--color-primary/surface/text/muted/border/accent/sale/success`.
+9. Asset placeholder phải đổi sang asset thật hoặc asset demo đúng kích thước qua `asset_pipeline.js`.
+10. Content demo phải chuyển vào settings/data thật nếu có boundary phù hợp.
+11. Animation/JS của Stitch phải đổi sang helper/theme-native.
+12. Markup phải sạch: không dư wrapper, không để text demo kỹ thuật lộ ra storefront.
+13. CSS generated phải được lọc lại thủ công: bỏ property không có tác dụng, giới hạn icon/SVG/media size, không giữ reset/framework lạ.
+14. Implement section-by-section. Sau mỗi section, so sánh thị giác với Stitch screen tương ứng. Nếu lệch không có lý do trong allowed deviation, **dừng và hỏi user trước khi tiếp tục**.
+15. Chạy `node remake_contract_audit.js --root <theme>` trước preview và trước final. Merchant fallback, dual CSS owner, feature hook thiếu, shared primitive drift và generator residue phải được xử lý hoặc waiver có evidence.
+16. Khi xong page, chạy `node visual_diff.js --before <baseline-dir> --after <preview-url> --paths <list>` để đo % regression so với Stitch reference (nếu có baseline) hoặc so với checkpoint cũ.
+17. Trước khi push, chạy `node orphan_sweep.js --root <theme>` để gỡ asset/snippet/section orphan đã thay thế.
+18. Tạo preview package bằng `npm run theme:package -- --root <theme> --out <scratch>/preview`; sau approval, upload ZIP vào draft theme qua Haravan Admin rồi lấy preview URL.
 
 ## D. Theme-Native First Contract
 
@@ -278,8 +280,9 @@ Chạy từ bên trong thư mục `RESTYLE_MASTER_KIT/`. Tất cả script có `
 | `orphan_sweep.js` | Tìm asset/snippet/section không reference | Sau refactor, trước push |
 | `qa_restyle_check.js` | Screenshot + overflow + a11y + flow | QA chính |
 | `visual_diff.js` | So sánh % pixel khác giữa baseline và preview | Sau mỗi page hoặc trước final |
+| `remake_contract_audit.js` | Enforce full-remake contract, settings source, CSS ownership, feature/shared hooks | Sau static implementation và trước final |
 | `workflow_final_guard.js` | Gate cuối trước handoff | Trước final |
-| `theme_push.js` | Wrapper Haravan CLI push (unpublished/live) | Smoke test dev hoặc deploy |
+| `theme_package.js` | Tạo ZIP local cho checkpoint upload draft | Preview package |
 | `final_showcase_capture.js` | Chụp final desktop/mobile screenshot | Final |
 | `final_theme_export.js` | Export theme zip | Final |
 
@@ -289,16 +292,17 @@ Chạy full audit:
 node liquid_content_audit.js --root <theme-root>
 node settings_boundary_audit.js --root <theme-root>
 node css_token_audit.js --root <theme-root>
+node remake_contract_audit.js --root <theme-root>
 ```
 
 Chạy QA:
 
 ```powershell
-node qa_restyle_check.js --base <preview-url> --paths /,/collections/all,/products/sample
+node qa_restyle_check.js --base <preview-url> --paths /,/collections/all,<real-product-path>
 ```
 
 Chạy final gate:
 
 ```powershell
-node workflow_final_guard.js --root <theme-root>
+node workflow_final_guard.js --root <theme-root> --require-remake-contract
 ```

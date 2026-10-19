@@ -73,6 +73,25 @@ Hỏi user 1 câu gộp cho state "Stitch không có": "Stitch không có state 
 | copy blocks reviewed | [ ] | |
 | merge status updated | [ ] | |
 
+## Full Remake Contract
+
+- Contract: `deliverables/FULL_REMAKE_CONTRACT.json`
+- Status: `planned`
+- Allowed status flow: `planned` -> `implemented-static` -> `verified-preview` -> `approved-final`
+- `implemented-static` means source checks passed; it is not preview verification.
+- `verified-preview` requires live interaction, responsive and fidelity evidence.
+- `approved-final` requires final guard pass and user approval evidence.
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Contract audit | pending | |
+| Shared primitives | pending | |
+| Feature preservation | pending | |
+| Settings/data policy | pending | |
+| Desktop/mobile preview | pending | |
+| Interaction flows | pending | |
+| Final approval | pending | |
+
 ## Allowed Deviation Log
 
 | Section / Asset | Change | Reason | Approved by | Notes |
@@ -192,6 +211,8 @@ Rule:
 
 Pass only when:
 
+- full-remake contract is `approved-final` when layout mode is `rebuild 100%`
+- `node remake_contract_audit.js --root <theme-root>` passes
 - shared layer đã refactor
 - QA chính đã pass
 - content rule đã pass
@@ -201,8 +222,14 @@ Pass only when:
 - final description đã đúng dạng editor fragment
 - theme export đã có nếu user yêu cầu
 
-Nếu chưa đạt, ghi đúng:
+Nếu chưa đạt, giữ hàng `Final readiness` ở `pending` và nêu rõ `next queue`.
 
-`Checkpoint - chưa final`
+| Gate | Status | Evidence |
+|---|---|---|
+| Final readiness | pending | |
 
-và nêu rõ `next queue`.
+Mỗi hàng `pending` (kể cả các hàng ở bảng Full Remake Contract) được giải quyết bằng bằng chứng thật:
+
+`node contract_promote.js --root <theme-root> --ledger-gate "Final readiness" --evidence <file>`
+
+Contract screen/feature/preview được nâng trạng thái bằng cùng script với `--screen`, `--feature` hoặc `--preview`.

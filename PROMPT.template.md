@@ -1,6 +1,6 @@
 # Prompt Templates
 
-Copy-paste prompt vào agent (Codex / Claude / Cursor / Kiro). Điền `<...>` rồi gửi.
+Copy-paste prompt vào Claude. Điền `<...>` rồi gửi.
 
 Nếu đã cài global skill `haravan-stitch-full-run`, có thể ưu tiên gọi skill đó cho full workflow Stitch -> Haravan; bộ prompt này vẫn hữu ích khi muốn điều khiển flow bằng prompt tay hoặc debug từng luồng riêng.
 
@@ -22,7 +22,7 @@ Stitch export: <C:/path/to/stitch-export> hoặc nói rõ là chưa có export
 Preview URL: <https://...> hoặc "chưa có"
 ```
 
-Nếu chưa có export, skill nên route upstream qua `/ck:stitch` trước; nếu đã có export thì đi vào `stitch:full` dry-run.
+Nếu chưa có export, skill nên route upstream qua `/ak:stitch` trước; nếu đã có export thì đi vào `stitch:full` dry-run.
 
 ---
 
@@ -55,17 +55,23 @@ Permissions:
 - Xóa CSS/JS/asset cũ orphan: <được | report-only>
 
 Asset source ưu tiên: <BFL flux-2 | brand cung cấp | reuse theme cũ | iconify free>
+Design Defaults (chốt ở Phase 0 trong `FULL_REMAKE_CONTRACT.json` block `designDefaults`):
+- `canvasColor`: `"#FFFFFF"` (nền trang trắng mặc định, chỉ đổi khi brief chỉ định rõ)
+- `mobileRootFontPx`: `14` (áp `html { font-size: 14px }` ở `@media (max-width: 767px)`, vùng chạm tính bằng `px` ≥24px)
+- `priceColor`: `"#C8102E"` (token cố định `--<pfx>-color-price: #C8102E`)
+- `sectionSpace`: `"clamp(2.5rem, 6vw, 4.5rem)"` (chỉ khai báo ở `assets/theme.css`)
+- `gutterToken`: `"--<pfx>-gutter"` (token gutter duy nhất toàn trang)
+- `homeSectionOrder`: `[]` (để trống trong template, chốt thứ tự section trang chủ ở Phase 0)
 
 Constraint:
 - Nạp skill /haravan trước khi làm việc (nếu có hệ skill Haravan).
 - Template-first conversion: markup MỚI 100% theo Stitch, xóa code bị thay — không đè CSS lên layout cũ, không fallback layout cũ. Feature/behavior cũ bưng hook sang markup mới.
 - Bưng nguyên Stitch theo STITCH_FIDELITY.md, deviation phải ghi ledger.
 - CSS/JS extend file có sẵn đúng template (index/main/blog/...) — không tạo file mới; không min()/max() trong .scss.*.
-- Tên file/ảnh/class theo brand theme — 0 chữ "stitch" trong code ship. Asset jpg/png, cấm webp. Đơn vị REM-first.
+- Tên file/ảnh/class theo brand theme — 0 chữ "stitch" trong code ship. Raster jpg/png, cấm webp; SVG chỉ cho logo/icon sạch có kích thước rõ ràng. Đơn vị REM-first.
 - Việt hóa toàn bộ copy storefront.
 - Container dùng page-width, không hardcode 1280px.
 - Ghi <theme>/deliverables/SKILL_IMPROVEMENT_LOG.md ngay khi có kit bug / yêu cầu đổi từ tôi.
-
 Bắt đầu A.1 intake. Hỏi tôi 1-3 câu nếu còn thiếu.
 ```
 
@@ -160,15 +166,15 @@ Preview URL: <url>
 
 Chạy theo thứ tự:
 1. npm run audit:restyle -- --root <theme>           (0 blocker)
-2. npm run a11y:deep -- --base <url> --paths /,/products/sample --fail-on serious
+2. npm run a11y:deep -- --base <url> --paths /,<real-product-path> --fail-on serious
 3. npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <url> --paths /
-4. npm run final:capture -- --base <url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
+4. npm run final:capture -- --base <url> --out <theme>/final-showcase --all-templates --paths-file <theme>/final-showcase/CAPTURE_PATHS.json
 5. Eyeball home 4 PNG + pages/* (collection/product/blog/article/page-default/page-custom/login/register); chụp lại nếu xấu
 6. Điền final-showcase/THEME_DESCRIPTION.html từ template (sales-focused fragment)
 7. Điền final-showcase/FEATURES.json (từ FEATURES.template.json) — TẤT CẢ tính năng nổi bật + image path
 8. npm run final:pptx -- --out final-showcase --brand "<Brand>"
-9. npm run final:export -- --root <theme> --file <project>-final-theme.zip
-10. npm run guard:final -- --root <theme> --require-pptx   (PASS bắt buộc)
+9. npm run final:export -- --root <theme> --brand "<Brand>-<Theme>"
+10. npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip --require-pptx   (PASS bắt buộc)
 
 Báo theo template Final trong FLOW_A.md mục "Output báo user sau mỗi phase".
 ```
@@ -185,7 +191,7 @@ Chạy:
 2. npm install (nếu chưa)
 3. npm test                     (phải 112+/0 pass)
 4. node run_preflight.js -h     (Python interpreter OK)
-5. haravan --version            (Haravan CLI OK)
+5. Get-Command haravan          (chỉ kiểm executable; không invoke CLI)
 
 Báo: pass/fail từng item. Nếu fail, hỏi tôi trước khi tự fix kit.
 ```
@@ -206,7 +212,7 @@ Báo: pass/fail từng item. Nếu fail, hỏi tôi trước khi tự fix kit.
 
 ## Kết hợp với context override
 
-Nếu agent có hệ thống context inject (Cursor `.cursorrules`, Claude project settings, Kiro steering files), thêm vào đó:
+Nếu agent có hệ thống context inject (Claude `CLAUDE.md` project settings), thêm vào đó:
 
 ```
 Khi user nhắc "restyle Haravan", "Stitch full theme", "luồng A", hoặc trỏ vào RESTYLE_MASTER_KIT:

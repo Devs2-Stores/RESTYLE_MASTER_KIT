@@ -33,7 +33,7 @@ Copy-Item RESTYLE_MASTER_KIT/THEME_FINGERPRINT.template.md <theme>/deliverables/
 
 ### A.3 · Baseline trước khi đụng
 ```powershell
-npm run qa -- --base <current-url> --paths /,/collections/all,/products/sample --out scratch/baseline
+npm run qa -- --base <current-url> --paths /,/collections/all,<real-product-path> --out scratch/baseline
 npm run perf:check -- --root <theme> --out scratch/perf --save-baseline
 ```
 **→ Gate**: có PNG trong `scratch/baseline/` + `scratch/perf/perf-baseline.json`.
@@ -110,7 +110,7 @@ Scaffold ra:
 Copy-Item RESTYLE_MASTER_KIT/asset-plan.template.json scratch/asset-plan.json
 # Edit scratch/asset-plan.json:
 #   - List mọi image slot từ TẤT CẢ screen Stitch
-#   - Ghi đúng ratio (hero 16:9, card 1:1, banner 21:9 ...)
+#   - Ghi đúng ratio đo từ Stitch cho từng slot; không ép ratio convention khi design đã chỉ định
 #   - Source: demo-image-assets / bfl / iconify / flaticon / existing / brand-provided
 
 npm run asset:plan -- --plan scratch/asset-plan.json --root <theme>
@@ -160,7 +160,7 @@ Thứ tự triển khai:
 - [ ] Layout grid khớp Stitch (số col, width ratio).
 - [ ] Copy text lấy đúng từ Stitch (Việt hóa nếu Stitch tiếng Anh).
 - [ ] Color/font dùng `var(--*)`, không hex lạc; đơn vị REM-first (px ÷ 16).
-- [ ] Image slot đúng ratio, có `loading="lazy"`, có `alt`; ảnh jpg/png — không webp.
+- [ ] Image slot đúng ratio, có `loading="lazy"`, có `alt`; raster jpg/png, SVG chỉ cho logo/icon sạch — không webp.
 - [ ] CSS/JS viết vào file CÓ SẴN đúng template (`index.*`/`main.*`/`blog.*`/...), giữ dialect `.scss.*`, không `min()`/`max()` chữ thường.
 - [ ] Sửa thẳng file đích — không snippet wrapper include 1 chỗ.
 - [ ] Tên file/class/ảnh theo brand theme — không có chữ "stitch".
@@ -196,12 +196,12 @@ Với mỗi state "Stitch không có": ưu tiên reuse pattern theme đích. N�
 
 ---
 
-### A.10 · Audit Static
+### A.10 · Audit Static + Haravan Lint
 ```powershell
 npm run audit:restyle -- --root <theme>
+npm run lint:haravan -- --root <theme>
 ```
-**→ Gate**: 0 blocker. (Warn xem xét, không cần = 0.)
-
+**→ Gate**: 0 blocker / 0 error. Cấm tuyệt đối cú pháp lỗi Haravan ({% continue %}, | json ngoài script, {% render %}, {% schema %}, .container ghép class).
 ---
 
 ### A.11 · Orphan Sweep
@@ -216,7 +216,8 @@ Xóa thủ công những file **đã verify** là orphan thật (không phải d
 
 ### A.12 · Push Dev
 ```powershell
-npm run theme:push -- --root <theme> --target unpublished
+npm run theme:package -- --root <theme> --out <scratch>/preview
+# Sau approval: upload ZIP vào draft theme bằng Haravan Admin và ghi preview URL.
 ```
 Lấy preview URL. Test tay nhanh: trang load, menu mở, product card hiển thị.
 
@@ -227,13 +228,13 @@ Lấy preview URL. Test tay nhanh: trang load, menu mở, product card hiển th
 ### A.13 · QA chính + A11y Deep + Perf
 ```powershell
 # QA Puppeteer (screenshot + overflow + a11y cơ bản + interaction flow)
-npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample,/blogs/news,/cart --viewports 320,375,768,1024,1440
+npm run qa -- --base <preview-url> --paths /,/collections/all,<real-product-path>,/blogs/news,/cart --viewports 320,375,768,1024,1440
 
 # A11y deep axe-core (contrast, ARIA, keyboard, focus)
-npm run a11y:deep -- --base <preview-url> --paths /,/products/sample --viewports 1440,375 --fail-on serious
+npm run a11y:deep -- --base <preview-url> --paths /,<real-product-path> --viewports 1440,375 --fail-on serious
 
 # Perf bundle diff + Lighthouse
-npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /,/products/sample
+npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /,<real-product-path>
 ```
 
 Đọc kết quả:
@@ -247,7 +248,7 @@ npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json 
 
 ### A.14 · Visual Diff (optional nhưng nên làm)
 ```powershell
-npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths /,/collections/all,/products/sample --capture --threshold 0.30
+npm run visual:diff -- --before <stitch-reference-dir> --after <preview-url> --paths /,/collections/all,<real-product-path> --capture --threshold 0.08
 ```
 - diff > 0 trên page đã restyle → confirm có apply.
 - diff ≈ 0 trên page **không** restyle → confirm không phá.
@@ -261,7 +262,7 @@ npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths /
 # Chụp final home showcase + multi-template (scroll, lazy-load, popup dismiss)
 # Điền CAPTURE_PATHS.json (product/article/page-custom = handle thật)
 Copy-Item RESTYLE_MASTER_KIT/CAPTURE_PATHS.template.json final-showcase/CAPTURE_PATHS.json
-npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json
+npm run final:capture -- --base <preview-url> --out <theme>/final-showcase --all-templates --paths-file <theme>/final-showcase/CAPTURE_PATHS.json
 
 # Eyeball home 4 PNG (guard contract) + pages/*:
 # final-showcase/Trang chủ.png
@@ -281,11 +282,10 @@ Copy-Item RESTYLE_MASTER_KIT/FEATURES.template.json final-showcase/FEATURES.json
 npm run final:pptx -- --out final-showcase --brand "<Brand>"
 
 # Export zip
-# haravan theme export has no --file (CLI 1.1.x); kit copies newest zip → --out/--file
-npm run final:export -- --root <theme> --file <project-name>-final-theme.zip --out <theme>/final-showcase
-
+# haravan theme export has no --file (CLI 1.1.x); kit copies newest zip → --out/--file (canonical name Haravan-<Brand>-<Theme>-vYYYYMMDD-HHmm.zip)
+npm run final:export -- --root <theme> --brand "<Brand>-<Theme>" --out <theme>/final-showcase
 # Gate cuối
-npm run guard:final -- --root <theme> --require-pptx
+npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip --require-pptx
 ```
 **→ Gate**: `guard:final` PASS. Tức là:
 - Home 4 PNG + THEME_DESCRIPTION.html + feature pptx (+ zip nếu require) đủ.
@@ -350,7 +350,7 @@ Final output:
 
 9. Tên file/ảnh/class theo brand theme — 0 chữ "stitch" trong code ship.
 
-10. Asset jpg/png only — 0 file webp. Đơn vị REM-first, html font-size 100%.
+10. Raster jpg/png, SVG chỉ cho logo/icon sạch — 0 file webp. Đơn vị REM-first, html font-size 100%.
 
 11. Sửa thẳng file đích — không wrapper snippet dùng 1 chỗ.
     Ghi SKILL_IMPROVEMENT_LOG.md ngay khi gặp bug kit/yêu cầu đổi từ user.
@@ -370,10 +370,10 @@ Final output:
 | Check nhanh sau mỗi section | `npm run audit:content -- --root <theme>` |
 | Trước QA | `npm run audit:restyle -- --root <theme>` |
 | Sau xóa code cũ | `npm run orphan:sweep -- --root <theme>` |
-| Push dev | `npm run theme:push -- --root <theme> --target unpublished` |
-| QA full | `npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample,/cart` |
-| A11y deep | `npm run a11y:deep -- --base <preview-url> --paths /,/products/sample --fail-on serious` |
+| Preview package | `npm run theme:package -- --root <theme> --out <scratch>/preview` |
+| QA full | `npm run qa -- --base <preview-url> --paths /,/collections/all,<real-product-path>,/cart` |
+| A11y deep | `npm run a11y:deep -- --base <preview-url> --paths /,<real-product-path> --fail-on serious` |
 | Perf + Lighthouse | `npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /` |
-| Visual diff | `npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths / --capture --threshold 0.30` |
-| Final | `npm run final:capture -- --all-templates && npm run final:pptx && npm run final:export && npm run guard:final -- --root <theme> --require-pptx` |
+| Fidelity diff | `npm run visual:diff -- --before <stitch-reference-dir> --after <preview-url> --paths / --capture --threshold 0.08` |
+| Final | `npm run final:capture -- --out <theme>/final-showcase --all-templates && npm run final:pptx -- --out <theme>/final-showcase && npm run final:export -- --root <theme> --out <theme>/final-showcase && npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip --require-pptx` |
 | Confirm kit healthy | `npm test` |

@@ -22,7 +22,7 @@ Append NGAY KHI phát sinh (không đợi cuối phiên), mỗi entry một dòn
 ## Nghi thức
 
 - Surface các entry MỚI ở mỗi STOP (1/2/3); toàn bộ list vào evidence pack STOP 3.
-- Kết thúc dự án: review log, entry đáng giá → phiên maintenance kit riêng (có approval) để cập nhật kit + CHANGELOG + skill 3 bản (Claude/Copilot/Codex).
+- Kết thúc dự án: review log, entry đáng giá → phiên maintenance kit riêng (có approval) để cập nhật kit + CHANGELOG + Claude Global skill.
 
 ## Log
 

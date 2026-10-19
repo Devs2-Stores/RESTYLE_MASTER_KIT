@@ -70,6 +70,14 @@ node settings_boundary_audit.js
 
 ## Nâng từng phiên bản cụ thể
 
+### Sau 2.10.0: giao thức ghi `settings_data.json`
+
+- `settings_merge.js` thêm `--key <id> --value <json>` (một key, không manifest), `--max-key-loss <n>` (mặc định 0: merge làm mất key thì không ghi) và từ chối manifest/patch nằm dưới thư mục có tên chứa `backup`. Lệnh `--prune-orphan-data` hoặc `schema_remove` đang ghi dữ liệu phải truyền `--max-key-loss` bằng đúng số key định xoá.
+- `haravan_lint.js` và `lib/settings-audit.js` nhận `--settings-mode legacy|schema|auto`; `auto` đọc `settingsMode` trong `.workspace-context.json` (ở theme root hoặc tối đa 3 cấp cha). Chế độ `legacy` audit `config/settings.html` và bỏ qua kiểm `settings_schema.json`.
+- `run_preflight.js` chỉ báo `STITCH_API_KEY` và `AIBOX_API_KEY`.
+- `final_theme_export.js` không còn sinh script PowerShell chứa đường dẫn; ZIP được đọc/ghi bằng `lib/zip.js`, nên thư mục theme có dấu (ví dụ `Ăn Vặt`) xuất bình thường.
+- `skills_sync.js` thêm vào `PIPELINE_SKILLS`: `antifan-qa-cockpit`, `haravan-partners-theme-submit`, `haravan-demo-data-audit`, `haravan-demo-live-seed`, `haravan-audit`.
+
 ### 2.1.2 → 2.1.3
 
 - Tạo mới `lib/theme-walk.js` (shared walk utility).

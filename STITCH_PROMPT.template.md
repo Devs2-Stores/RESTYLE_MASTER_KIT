@@ -4,7 +4,7 @@ Use this template before generating screens in Google Stitch or Stitch MCP. The 
 
 ## How To Use
 
-1. Đọc mục **GLOBAL RULES (BẮT BUỘC)** bên dưới trước — full-theme là một SET prompt, mỗi màn hình một prompt, mọi prompt đều nhúng GLOBAL RULES + SHELL SPEC + set-position line.
+1. Đọc mục **SCREEN CATALOG + CORE RULES** bên dưới trước — chốt scope từ theme inventory và yêu cầu user, mỗi màn hình được chọn dùng một prompt riêng và nhúng CORE RULES + SHELL SPEC + set-position line.
 2. Fill the project fields.
 3. Choose the prompt mode:
    - `Creative Direction`: let Stitch explore layout and section composition.
@@ -18,13 +18,13 @@ Use this template before generating screens in Google Stitch or Stitch MCP. The 
    - Implement theo `STITCH_FIDELITY.md`
    - QA bằng `qa_restyle_check.js` + `a11y_deep.js`
 
-## GLOBAL RULES (BẮT BUỘC — nhúng vào MỌI screen prompt)
+## Screen Catalog + Core Rules
 
-Bộ prompt cho một dự án full-theme là một **SET**: mỗi màn hình một prompt riêng, không được gộp nhiều màn hình vào một prompt, không được bỏ sót màn hình nào. Track trạng thái từng màn hình trong ledger (`prompted / generated / approved / converted`).
+Bộ prompt cho một dự án full-theme là một **SET**: mỗi màn hình thuộc scope dùng một prompt riêng. Danh sách dưới đây là catalog để chọn, không tự biến capability chưa có thành baseline. Đánh dấu `selected / not-applicable / requires-verification` và track màn hình đã chọn trong ledger (`prompted / generated / approved / converted`).
 
 ```markdown
-GLOBAL RULES (BẮT BUỘC):
-Phải tạo đầy đủ tất cả các trang, mỗi cái là một màn hình riêng biệt hoàn toàn:
+SCREEN CATALOG (CHỌN THEO SCOPE):
+Mỗi màn hình được chọn phải là một screen riêng biệt hoàn toàn:
 - Trang chủ · Trang danh mục sản phẩm · Trang chi tiết sản phẩm
 - Trang tin tức · Trang chi tiết bài viết
 - Trang Giới thiệu · Trang Hệ thống cửa hàng · Trang Liên hệ
@@ -34,7 +34,7 @@ Phải tạo đầy đủ tất cả các trang, mỗi cái là một màn hình
 - Wishlist Modal · Smart search modal · Newsletter Modal · TOC menu
 - Account Modal · Menu Dropdown Desktop · Megamenu Desktop
 - Swal Modal · Sale Popup · Notify Modal · Livechat Modal
-*** Bản responsive mobile của TỪNG trang ***
+*** Bản responsive mobile của từng trang được chọn ***
 
 MOTION/INTERACTION SPEC (bắt buộc — Stitch xuất design tĩnh nên phải THỂ HIỆN
 qua states/annotation/frame phụ): hover effect cho card/button/link · animation
@@ -42,8 +42,19 @@ entrance cho section · JS slider (vẽ đủ dots/arrows/peek state) · marquee
 countdown block · counter/số liệu động — ghi rõ mỗi cái xuất hiện ở đâu, chạy thế nào.
 
 Font: BẮT BUỘC chọn font có hỗ trợ tiếng Việt (Vietnamese subset) và có trên Google Fonts.
+VIETNAMESE TYPOGRAPHY: Heading line-height BẮT BUỘC >= 1.18 (khuyến nghị 1.2–1.35), TUYỆT ĐỐI KHÔNG dùng line-height <= 1.1. Tiếng Việt có nhiều dấu mũ/thanh kép (ể, ệ, ỗ, ứ, ừ, ặ...) nếu line-height quá thấp sẽ bị xén dấu hoặc chồng chéo chữ.
 Đặt tên màn hình bằng TIẾNG ANH (Home, Product Detail, Cart...);
 toàn bộ nội dung/copy TRONG màn hình bằng TIẾNG VIỆT.
+
+INDUSTRY-MATCHED CATALOG CHECK: Bắt buộc đối soát ngành hàng catalog của store trước khi sinh design (rượu vang vs spa vs thời trang). Nếu store đang chứa demo data lệch ngành, PHẢI chạy HaravanDemoKit để seed sản phẩm/collection đúng ngành trước khi generate và preview.
+
+STITCH CHUNKING GUIDANCE (chống -32001 timeout ~300s):
+Google Stitch API Gateway có giới hạn server cutoff ngắt kết nối sau ~300s đối với prompt dài (> 1.5KB hoặc > 6 sections).
+BẮT BUỘC chia trang dài thành 2–3 chunks (<= 6 sections và <= 1.5KB mỗi prompt):
+- Chunk 1 (Top): Header shell spec, Hero slider, Brand intro/USPs (<= 6 sections).
+- Chunk 2 (Middle): Featured collection tabs, Product highlights, Promo editorial/Story (<= 6 sections).
+- Chunk 3 (Bottom): Testimonials, Blog articles, Newsletter, Footer shell spec (<= 6 sections).
+Truyền prompt qua file (--prompt-file) bằng stitch_generate.js, KHÔNG truyền qua argv cmd.exe.
 
 HEADER và FOOTER phải GIỐNG HỆT NHAU 100% trên MỌI màn hình — đúng SHELL SPEC bên dưới,
 không được thiết kế lại/biến tấu header-footer ở bất kỳ screen nào.
@@ -57,10 +68,10 @@ không được thiết kế lại/biến tấu header-footer ở bất kỳ scr
 
 **Mỗi screen prompt PHẢI nhúng** (thiếu 1 trong 3 = vi phạm protocol):
 - (a) SHELL SPEC nguyên văn,
-- (b) khối GLOBAL RULES core (font VN subset · tên màn hình EN, copy VN · motion spec · UI states),
+- (b) khối CORE RULES (font VN subset · tên màn hình EN, copy VN · motion spec · UI states),
 - (c) dòng set-position: "Screen X of <tổng> — prompt này chỉ vẽ <tên màn hình> (desktop hoặc mobile)".
 
-Danh sách màn hình trên đồng thời là **CONVERSION SCOPE checklist**: full-theme chưa xong khi còn màn hình chưa convert (track per-screen trong ledger).
+**CONVERSION SCOPE checklist** = màn hình được chọn + màn hình có trong Stitch export đã duyệt. Full-theme chưa xong khi scope này còn màn hình chưa convert.
 
 ## Master Prompt
 
@@ -99,8 +110,15 @@ Create a high-fidelity ecommerce storefront design for a Haravan theme restyle.
 - Prefer existing theme/global container and token concepts such as `page-width`, color roles, typography roles, and spacing roles.
 - Keep cards at 8px border radius or less unless the brand direction clearly needs softer shapes.
 
-**DESIGN SYSTEM DIRECTION**
+**DESIGN SYSTEM DIRECTION & MANDATORY DEFAULTS (`designDefaults`)**
 - Platform: responsive web storefront, desktop and mobile.
+- Default `designDefaults` (override at Phase 0 only when brief explicitly specifies):
+  - `canvasColor`: `"#FFFFFF"` (clean white page background)
+  - `mobileRootFontPx`: `14` (`html { font-size: 14px }` at `<= 767px`; tap hit areas sized in `px` >= 24px)
+  - `priceColor`: `"#C8102E"` (prominent sale/price token `--<pfx>-color-price`)
+  - `sectionSpace`: `"clamp(2.5rem, 6vw, 4.5rem)"` (single section spacing token in `assets/theme.css`)
+  - `gutterToken`: `"--<pfx>-gutter"` (single horizontal container gutter token; never override `.container` padding or use `100vw`)
+  - `homeSectionOrder`: `[]` (locked at Phase 0)
 - Layout rhythm: consistent container width, reusable grid, clear section spacing.
 - Typography: use a clear heading/body hierarchy; if the existing theme has fonts, assume those fonts will be reused.
 - Color roles: define primary, surface, text, muted text, border, sale/error, success.
@@ -108,21 +126,20 @@ Create a high-fidelity ecommerce storefront design for a Haravan theme restyle.
 - Form controls: visible labels, clear focus state, readable errors.
 - Icons: use one consistent icon style; do not mix icon families.
 - Icon sizing: keep icons in explicit stable boxes; avoid oversized SVG/image properties that can break layout.
-
 **ASSET RULES**
 - Product, collection, and article imagery should be represented as dynamic data slots.
 - Hero/banner/lifestyle images can use placeholders, but each placeholder must have a clear descriptive `data-alt` or visible note for asset generation.
 - Do not place Vietnamese or brand copy inside images; text must be real HTML text.
 - Avoid dark, blurred, cropped, stock-like images when product/place/object inspection matters.
 - Keep image slots with stable aspect ratios for desktop and mobile.
-- Final theme assets ship as jpg/png ONLY (webp is forbidden at conversion time); plan imagery accordingly.
+- Final raster assets ship as jpg/png (webp forbidden). SVG is allowed only for clean logo/UI icons with explicit dimensions; plan imagery accordingly.
 
 **RESPONSIVE REQUIREMENTS**
 - Must work at 320, 375, 768, 1024, and 1440px.
 - No horizontal overflow.
 - Header, filters, product grids, sliders, CTA bars, and forms must remain usable on mobile.
 - Text must not overlap images, buttons, cards, badges, or sticky elements.
-- Touch targets should be at least 44px where practical.
+- Tap hit areas (pseudo-element included) are at least 24px; controls in one row share one height.
 
 **PAGE DIRECTION**
 - Page type: [HOME / COLLECTION / PRODUCT DETAIL / BLOG LIST / ARTICLE / GENERIC PAGE / CONTACT / FAQ / CART / SEARCH / OTHER]

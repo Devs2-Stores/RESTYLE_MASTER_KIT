@@ -10,7 +10,7 @@
 cd RESTYLE_MASTER_KIT
 npm install
 npm test           # phải pass 100% test trước khi dùng
-haravan --version  # đảm bảo Haravan CLI có (cần cho theme:push, final:export)
+Get-Command haravan  # chỉ kiểm executable; không invoke CLI khi chưa có approval
 ```
 
 Optional env keys (chỉ khi muốn generate ảnh AI/icon):
@@ -31,6 +31,7 @@ $env:FREEPIK_API_KEY = "..."     # Flaticon/Freepik
 ├─ <theme>/                ← theme đích, anh em với kit
 │   ├─ assets/  config/  layout/  snippets/  templates/
 │   └─ deliverables/       ← intake/fingerprint/ledger/retro FILLED
+│       └─ FULL_REMAKE_CONTRACT.json ← required for `rebuild 100%`
 ├─ scratch/                ← work-in-progress, gitignore
 │   ├─ stitch/<screen>/    ← stitch_consume output
 │   ├─ tokens/<screen>/    ← design_token_extract output
@@ -66,7 +67,7 @@ npm run stitch:full -- --theme <theme> --stitch <single-screen-export> --mode si
 npm run stitch:full -- --theme <theme> [--base <preview-url>] --mode audit-led
 ```
 
-Nếu chưa có export, dùng `/ck:stitch` để generate/export trước, rồi mới quay lại `stitch:full` ở runner-conversion stage.
+Nếu chưa có export, dùng `/ak:stitch` để generate/export trước, rồi mới quay lại `stitch:full` ở runner-conversion stage.
 
 Checkpoint bắt buộc vẫn tồn tại:
 - asset approval
@@ -104,7 +105,7 @@ npm run preflight -- --root <theme>
 
 ### A.3. Baseline before touching
 ```powershell
-npm run qa -- --base <current-preview-url> --paths /,/collections/all,/products/sample --out scratch/baseline
+npm run qa -- --base <current-preview-url> --paths /,/collections/all,<real-product-path> --out scratch/baseline
 npm run perf:check -- --root <theme> --out scratch/perf --save-baseline
 ```
 - Lưu screenshot + bundle baseline để so diff cuối project.
@@ -154,9 +155,11 @@ npm run asset:plan -- --plan scratch/asset-plan.json --root <theme>
 - **Gate**: `Missing: 0 | Wrong: 0`.
 
 ### A.9. Implement section-by-section (theo Stitch fidelity)
+- Copy `FULL_REMAKE_CONTRACT.template.json` vào `<theme>/deliverables/FULL_REMAKE_CONTRACT.json` và giữ đúng status flow: `planned` → `implemented-static` → `verified-preview` → `approved-final`.
+- Không dùng `converted` cho source-only. Khi chưa có preview evidence, status cao nhất là `implemented-static`.
 - **Template-first conversion, không phải restyle**: dựng MARKUP MỚI theo Stitch cho từng template; markup cũ không thể hiện được design thì XÓA, không đè CSS lên DOM legacy, không giữ fallback layout cũ (STITCH_FIDELITY.md §1A). Feature/behavior cũ (AJAX cart, slider, quickview, mega menu...) bưng hook sang markup mới — muốn BỎ một feature phải hỏi user trước.
 - Từ scaffold ở A.7, điền: layout grid, copy text, asset slot, CSS scoped, JS lifecycle theo theme đích.
-- **CSS/JS viết vào file CÓ SẴN đúng template** (home → `index.*`, shell → `main.*`, blog → `blog.*`, ...), giữ dialect `.scss.*` (nesting OK, cấm `min()`/`max()` chữ thường). Không tạo file asset mới song song. Tên file/class/ảnh theo brand theme — không có chữ "stitch". Ảnh jpg/png, cấm webp. Đơn vị REM-first (px ÷ 16).
+- **CSS/JS viết vào file CÓ SẴN đúng template** (home → `index.*`, shell → `main.*`, blog → `blog.*`, ...), giữ dialect `.scss.*` (nesting OK, cấm `min()`/`max()` chữ thường). Không tạo file asset mới song song. Tên file/class/ảnh theo brand theme — không có chữ "stitch". Raster jpg/png, cấm webp; SVG chỉ cho logo/icon sạch có kích thước rõ ràng. Đơn vị REM-first (px ÷ 16).
 - Mỗi section xong: mở Stitch screen song song so visual. Lệch không có lý do trong allowed deviation → dừng, hỏi user.
 - **Mechanical checks trước khi kết thúc phiên/section** (STITCH_FIDELITY.md §5B): grep min(/max( trên `.scss.*` = 0 · file CSS/JS mới = 0 · grep stitch trên file ship = 0 · webp = 0 · wrapper snippet 1 chỗ = 0. Ghi kết quả vào ledger.
 - Update ledger: file đã đổi + deviation log nếu có + entry `SKILL_IMPROVEMENT_LOG.md` nếu gặp kit bug/rule mù mờ/yêu cầu đổi từ user.
@@ -165,8 +168,9 @@ npm run asset:plan -- --plan scratch/asset-plan.json --root <theme>
 ### A.10. Audit static
 ```powershell
 npm run audit:restyle -- --root <theme>
+npm run audit:remake-contract -- --root <theme>
 ```
-- 0 blocker là điều kiện bắt buộc.
+- Full remake phải pass cả audit thường và contract audit; 0 blocker là điều kiện bắt buộc.
 - **Gate**: 0 blocker.
 
 ### A.11. Orphan sweep
@@ -178,16 +182,17 @@ npm run orphan:sweep -- --root <theme>
 
 ### A.12. Theme push dev (smoke test)
 ```powershell
-npm run theme:push -- --root <theme> --target unpublished
+npm run theme:package -- --root <theme> --out <scratch>/preview
+# Sau approval: upload <scratch>/preview/theme-preview.zip vào draft theme bằng Haravan Admin.
 ```
 - Lấy preview URL từ output Haravan CLI.
 - **Gate**: trang load được, không 500.
 
 ### A.13. QA chính + a11y deep + perf
 ```powershell
-npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample,/blogs/news
-npm run a11y:deep -- --base <preview-url> --paths /,/products/sample --viewports 1440,375 --fail-on serious
-npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /,/products/sample
+npm run qa -- --base <preview-url> --paths /,/collections/all,<real-product-path>,/blogs/news
+npm run a11y:deep -- --base <preview-url> --paths /,<real-product-path> --viewports 1440,375 --fail-on serious
+npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <preview-url> --paths /,<real-product-path>
 ```
 - QA: 0 fail, warn cân nhắc.
 - A11y: 0 critical/serious. Moderate/minor xem xét.
@@ -196,7 +201,7 @@ npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json 
 
 ### A.14. Visual diff so với baseline (optional)
 ```powershell
-npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths / --capture --threshold 0.30
+npm run visual:diff -- --before <stitch-reference-dir> --after <preview-url> --paths / --capture --threshold 0.08
 ```
 - Restyle full thì diff sẽ cao (>30%). Threshold cao chỉ để xác nhận có thay đổi, không để pass <5%.
 - Nếu diff = 0% trên page mong đổi → cảnh báo: có thể chưa apply.
@@ -208,7 +213,7 @@ npm run visual:diff -- --before scratch/baseline --after <preview-url> --paths /
 #    Copy CAPTURE_PATHS.template.json → final-showcase/CAPTURE_PATHS.json
 #    Điền product/article/page-custom bằng handle thật trước khi chạy.
 #    Always keep home mobile 276x480; do NOT put mobile page grids into sales PPTX unless asked.
-npm run final:capture -- --base <preview-url> --all-templates --paths-file final-showcase/CAPTURE_PATHS.json [--theme-id <id>]
+npm run final:capture -- --base <preview-url> --out <theme>/final-showcase --all-templates --paths-file <theme>/final-showcase/CAPTURE_PATHS.json [--theme-id <id>]
 # Eyeball: home desktop+mobile + pages/ with readable names:
 #   pages/Trang chi tiết sản phẩm.png, Trang chi tiết bài viết.png, …
 
@@ -232,9 +237,9 @@ npm run final:pptx -- --out final-showcase --brand "<Brand>"
 #    Pre-export UI smoke: skill haravan-stitch-full-run/references/post-restyle-qa-checklist.md
 #    CLI note: `haravan theme export` does NOT accept --file (v1.1.x). Kit script runs bare export
 #    then copies newest zip → --out/--file. Manual fallback:
-#      cd <theme>; haravan theme export; copy .\*.zip .\final-showcase\<project>-final-theme.zip
-npm run final:export -- --root <theme> --file <project>-final-theme.zip --out <theme>/final-showcase
-npm run guard:final -- --root <theme> --require-pptx
+#      cd <theme>; haravan theme export; copy .\*-*.zip .\final-showcase\Haravan-<Brand>-<Theme>-vYYYYMMDD-HHmm.zip
+npm run final:export -- --root <theme> --brand "<Brand>-<Theme>" --out <theme>/final-showcase
+npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip --require-pptx --require-remake-contract
 ```
 - Mark final trong ledger.
 - **Gate**: `guard:final` PASS (home PNG dims + description + pptx khi `--require-pptx`).
@@ -258,7 +263,7 @@ Rút gọn từ A:
 9. **Audit + push dev + qa + a11y deep**:
    ```powershell
    npm run audit:restyle -- --root <theme>
-   npm run theme:push -- --root <theme> --target unpublished
+   npm run theme:package -- --root <theme> --out <scratch>/preview
    npm run qa -- --base <preview-url> --paths <page-path>
    npm run a11y:deep -- --base <preview-url> --paths <page-path> --fail-on serious
    ```
@@ -276,7 +281,7 @@ Khi user trỏ vào theme cũ + ý "audit và fix", không có design source.
 2. **Preflight + fingerprint** đầy đủ.
 3. **Baseline screenshot + perf** trước khi sửa:
    ```powershell
-   npm run qa -- --base <preview-url> --paths /,/collections/all,/products/sample --out scratch/baseline
+   npm run qa -- --base <preview-url> --paths /,/collections/all,<real-product-path> --out scratch/baseline
    npm run perf:check -- --root <theme> --out scratch/perf --save-baseline
    ```
 4. **Audit static**:
@@ -332,7 +337,7 @@ Khi user trỏ vào theme cũ + ý "audit và fix", không có design source.
 | QA full theme khi chưa refactor | Refactor shared layer trước, QA full sau. Trong lúc làm chỉ qa 1 page đang code. |
 | Hardcode `#hex` rải rác | Map qua `var(--color-*)`. Sau mỗi page chạy `audit:css-tokens`. |
 | Sửa `settings_data.json` không xin phép | Hỏi user trước. Cần default mới → ghi ledger note, không tự sửa. |
-| `theme_push live` không xin phép | Default `--unpublished`. Live cần `--confirm-live` + 5s countdown. Đừng bypass. |
+| Upload/push remote không xin phép | Toolkit chỉ tạo ZIP local. Mọi upload Haravan Admin hoặc invocation Haravan CLI phải có approval riêng. |
 | Chụp final khi popup còn che hero | `final_showcase_capture` đã có dismiss, vẫn phải eyeball 4 PNG output. Xấu thì chụp lại. |
 | Visual diff threshold 5% fail vì restyle full | Chỉnh `--threshold` cao (0.30-0.50) khi restyle full. Threshold thấp chỉ cho audit-led. |
 | A11y deep ra critical, fix bằng cách bỏ qua | Critical/serious phải về 0 trước final. Không skip. |
@@ -341,7 +346,7 @@ Khi user trỏ vào theme cũ + ý "audit và fix", không có design source.
 | Tạo file CSS/JS mới thay vì extend file sẵn có | Map `assets/` trước; viết vào `main`/`index`/`blog`/... đúng template. File mới = deviation phải duyệt. |
 | `min()`/`max()` trong `.scss.*` giết cả stylesheet | Dùng `width:100% + max-width` / `clamp()`. `audit:content` chặn `SCSS_MIN_MAX`; sau upload grep `Error >` trên CDN. |
 | Tên file/ảnh/class dính chữ "stitch" | Đặt tên theo brand theme. `audit:content` chặn `STITCH_LEAK`/`STITCH_FILENAME`. |
-| Asset webp lọt vào `assets/` | jpg/png only, nén qua sharp q~80. `audit:content` chặn `WEBP_ASSET`/`WEBP_REF`. |
+| Asset webp lọt vào `assets/` | Raster dùng jpg/png và nén sharp q~80; SVG chỉ cho logo/icon sạch. `audit:content` chặn `WEBP_ASSET`/`WEBP_REF`. |
 | Tạo snippet wrapper rồi include đúng 1 nơi | Sửa thẳng file đích (`header.liquid`, `index.liquid`...). Snippet mới chỉ khi tái dùng 2+ chỗ hoặc theme đã có pattern tách. |
 
 ---
@@ -358,13 +363,14 @@ Khi user trỏ vào theme cũ + ý "audit và fix", không có design source.
 | Có asset-plan | `npm run asset:plan -- --plan scratch/asset-plan.json --root <theme>` |
 | Sau refactor 1-2 section | `npm run audit:content -- --root <theme>` |
 | Trước QA chính | `npm run audit:restyle -- --root <theme>` |
+| Full remake trước preview/final | `npm run audit:remake-contract -- --root <theme>` |
 | Sau khi xóa block CSS/JS cũ | `npm run orphan:sweep -- --root <theme>` |
 | Smoke test browser thật | `npm run qa -- --base <preview-url> --paths /,...` |
 | Deep a11y (contrast/ARIA/keyboard) | `npm run a11y:deep -- --base <preview-url> --paths /,/products/x --fail-on serious` |
 | Đo bundle + Lighthouse | `npm run perf:check -- --root <theme> --baseline scratch/perf/perf-baseline.json --lighthouse --base <url> --paths /` |
 | Đo regression visual | `npm run visual:diff -- --before <baseline> --after <preview-url> --paths /` |
-| Push thử | `npm run theme:push -- --root <theme> --target unpublished` |
-| Final | `npm run final:capture && npm run final:export && npm run guard:final` |
+| Preview package | `npm run theme:package -- --root <theme> --out <scratch>/preview` |
+| Final | `npm run final:capture -- --out <theme>/final-showcase && npm run final:export -- --root <theme> --out <theme>/final-showcase && npm run guard:final -- --root <theme> --out <theme>/final-showcase --require-zip` |
 | Kit health check | `npm test` (phải pass 100%) |
 
 ---

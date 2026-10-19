@@ -1,10 +1,10 @@
 # Restyle Master Kit
 
-KIT_VERSION: 2.6.0
+KIT_VERSION: 2.12.0
 
 Đây là bộ khung canonical để bắt đầu một dự án Haravan theme mới.
 
-**Vị trí kit CỐ ĐỊNH**: `C:\Users\Admin\Desktop\RESTYLE_MASTER_KIT` (thiếu/hỏng → clone `git@github.com:Devs2-Stores/RESTYLE_MASTER_KIT.git` về đúng path đó). Kit là **READ-ONLY khi chạy project**: mọi artifact, workaround, tool install lưu vào thư mục làm việc (`scratch/`, `<theme>/deliverables/`); bug kit → ghi `SKILL_IMPROVEMENT_LOG.md`, chỉ sửa kit trong phiên maintenance riêng có approval.
+**Vị trí kit canonical trong workspace này**: `E:\Work\tools\RESTYLE_MASTER_KIT`. Chỉ dùng path khác khi project rule chỉ định rõ và path đó có đủ capability marker trong `package.json`. Khi chạy project, artifact nằm ở `E:\Work\scratch` hoặc `<theme>/deliverables`/`<theme>/final-showcase`, không ghi vào kit.
 
 ## Bắt đầu chạy ngay
 
@@ -14,12 +14,14 @@ Khởi động project mới với agent? **Copy prompt từ `PROMPT.template.md
 
 Nếu đã cài global skill `haravan-stitch-full-run`, có thể dùng skill đó như workflow conductor A-Z; nếu chưa, dùng prompt templates + `stitch:full` trực tiếp.
 
+Nguồn sự thật của skill là `C:\Users\Admin\.claude\skills\<skill>\` (OMP nạp đúng thư mục này). `E:\Work\themes\.claude\skills\` và `C:\Users\Admin\.agents\skills\` là mirror, chỉ được tạo lại bằng `node skills_sync.js`; không sửa tay.
+
 ### Chọn đúng luồng trước
 
 | Tình huống | Vào đâu trước |
 |---|---|
 | Mới mở project, chưa biết đi luồng nào | `RUN_GUIDE.md` |
-| Muốn 1 command full-run có checkpoint | `npm run stitch:full -- --theme <theme> --stitch <export> [--base <preview-url>] --mode full-theme` *(nếu chưa có export: generate trước bằng `/ck:stitch`)* |
+| Muốn 1 command full-run có checkpoint | `npm run stitch:full -- --theme <theme> --stitch <export> [--base <preview-url>] --mode full-theme` *(nếu chưa có export: generate trước bằng `/ak:stitch`)* |
 | Stitch full theme | `FLOW_A.md` |
 | Stitch chỉ 1 page | `RUN_GUIDE.md` → Luồng B |
 | Audit-led, không có Stitch | `RUN_GUIDE.md` → Luồng C |
@@ -63,10 +65,12 @@ Nếu muốn đọc tài liệu trực tiếp:
 21. `asset_pipeline.js` + `asset-plan.template.json`
 22. `orphan_sweep.js`
 23. `visual_diff.js`
-24. `theme_push.js`
-25. `run_preflight.js`
-26. `haravan_preflight_fallback.py`
-27. `package.json`
+24. `theme_package.js`
+25. `run_preflight.js` (preflight theme, API keys, watchers, .haravan-cli_local.json)
+26. `stitch_generate.js` (Stitch generation, prompt gating, DESIGN screen filtering, 1440px render)
+27. `haravan_lint.js` (lint:haravan comprehensive forbidden syntax & defect scan)
+28. `haravan_preflight_fallback.py`
+29. `package.json`
 
 ## Nếu dùng Stitch MCP
 
@@ -101,7 +105,7 @@ Nếu muốn đọc tài liệu trực tiếp:
 - Layout mới theo approved design phải rebuild module sạch theo design 100%, không chồng CSS/HTML mới lên block cũ.
 - **CSS/JS viết vào file CÓ SẴN đúng template** (home → `index.*`, shell → `main.*`, blog → `blog.*`...). Không tạo file asset mới song song; file mới = deviation phải duyệt. Trong `.scss.*`: nesting OK, cấm `min()`/`max()` chữ thường (legacy compiler chết cả file).
 - **Naming theo brand theme**: 0 chữ "stitch"/tên generator trong tên file/ảnh/class/settings key ship ra.
-- **Asset jpg/png only — cấm webp**; ảnh generate/export nén qua sharp (q~80, đúng slot) trước khi vào `assets/`.
+- **Raster jpg/png — cấm webp**; logo/icon có thể dùng SVG sạch với kích thước rõ ràng; ảnh generate/export nén qua sharp (q~80, đúng slot) trước khi vào `assets/`.
 - **Đơn vị REM-first**: rem cho type/spacing (px ÷ 16), em chỉ cho nội bộ component, px cho hairline/breakpoint; `html { font-size: 100% }`.
 - **Sửa thẳng file đích** — không tạo snippet wrapper include đúng 1 nơi.
 - Khi thay CSS/JS block mới, xóa block cũ đã orphan sau khi kiểm tra selector/dependency để tránh phình asset. Dùng `orphan_sweep.js` để liệt kê.
@@ -118,11 +122,11 @@ Nếu muốn đọc tài liệu trực tiếp:
 
 | Phase | Skill nên dùng | Ghi chú |
 |---|---|---|
-| Scout / fingerprint | `scout`, `haravan-audit`, `ck:debug` | Dùng khi theme lạ hoặc preflight fail |
-| Stitch / design | `stitch`, `frontend-design`, `ai-multimodal` | Dùng để tạo/đọc/critique visual source |
-| Merge implementation | `haravan-liquid`, `haravan-pages`, `haravan-settings`, `ck:cook` | `ck:cook` / settings chỉ nên dùng sau khi design đã chốt |
-| QA / fix | `web-testing`, `haravan-accessibility`, `haravan-performance`, `ck:debug` | Dùng khi preview gate fail |
-| Final handoff | `haravan-preview-screenshot`, `ck:code-review`, `project-management`, `copywriting` | Dùng cho screenshot, review, sync-back, theme description |
+| Scout / fingerprint | `scout`, `haravan-audit`, `ak:debug` | Dùng khi theme lạ hoặc preflight fail |
+| Stitch / design | `stitch`, `frontend-design`, `ai-image-studio` | Dùng để tạo/đọc/critique visual source; ảnh sinh qua `ai-image-studio`, đọc ảnh bằng native vision của phiên |
+| Merge implementation | `haravan-liquid`, `haravan-pages`, `haravan-settings`, `ak:cook` | `ak:cook` / settings chỉ nên dùng sau khi design đã chốt |
+| QA / fix | `web-testing`, `haravan-accessibility`, `haravan-performance`, `ak:debug` | Dùng khi preview gate fail |
+| Final handoff | `haravan-preview-screenshot`, `ak:code-review`, `project-management`, `copywriting` | Dùng cho screenshot, review, sync-back, theme description |
 
 ## Final artifacts
 
@@ -133,8 +137,7 @@ Khi user yêu cầu final/showcase/theme description:
 - `final-showcase/Trang chủ-fullpage.png`
 - `final-showcase/Trang chủ-mobile-fullpage.png`
 - `final-showcase/THEME_DESCRIPTION.html`
-- `final-showcase/ivory-gem-final-theme.zip`
-
+- `final-showcase/Haravan-<Brand>-<Theme>-vYYYYMMDD-HHmm.zip`
 ## Final screenshot rule
 
 - Phải scroll qua toàn trang để kích hoạt lazy-load.
@@ -151,6 +154,6 @@ Khi user yêu cầu final/showcase/theme description:
 
 ## Chuyển sang dự án mới
 
-- Kit ở NGUYÊN vị trí cố định `C:\Users\Admin\Desktop\RESTYLE_MASTER_KIT` — KHÔNG copy kit vào project, không sửa kit khi chạy project.
+- Kit canonical ở `E:\Work\tools\RESTYLE_MASTER_KIT`; không copy kit vào project và không ghi artifact runtime vào kit.
 - Mọi thứ của dự án (theme, `scratch/`, `deliverables/`, `final-showcase/`) nằm trong thư mục làm việc của dự án đó; artifact tạm không được ghi vào kit.
 - Kết thúc dự án: review `<theme>/deliverables/SKILL_IMPROVEMENT_LOG.md` — entry nào đáng nâng cấp kit/skill thì đưa vào phiên maintenance riêng (có approval) để cập nhật kit + CHANGELOG.

@@ -16,8 +16,8 @@ Phạm vi công việc là **TEMPLATE CONVERSION toàn phần**: mọi template 
 - **Không fallback legacy-layout**: không conditional quay về design cũ, không giữ toggle `*_enable` bảo tồn layout cũ, không dual render path, không section "để dành". Làm mới hoàn toàn — code bị thay là code bị XÓA (orphan sweep xác nhận).
 - Ranh giới: **FEATURE/behavior của theme cũ được BẢO TỒN** (AJAX cart, variant picker, slider, lazy-load, mega menu, search suggest, countdown, popup, tracking hook... — bưng hook sang markup mới); chỉ có ĐƯỜNG LUI LAYOUT cũ là không được giữ.
 - Reuse đúng chỗ: **reuse infrastructure** (bộ file asset per-template, token, JS lib/lifecycle, helper, settings mechanism) — **REBUILD markup** theo Stitch. Lạm dụng reuse vào markup = lỗi CSS-overlay; lạm dụng rebuild vào infrastructure = phình code.
-- Scope conversion = đầy đủ danh sách màn hình trong GLOBAL RULES của `STITCH_PROMPT.template.md` (mọi trang + mọi modal + bản mobile). Track per-screen trong ledger; full-theme chưa xong khi còn màn hình chưa convert.
-
+- Scope conversion = toàn bộ màn hình có trong Stitch export và capability đã được user/project chọn. Danh mục màn hình trong `STITCH_PROMPT.template.md` chỉ là catalog để đối chiếu; quickview, compare, wishlist, smart search, popup, account hay backend behavior không tự trở thành baseline. Track per-screen trong ledger; full-theme chưa xong khi còn màn hình thuộc scope chưa convert.
+- **Industry-matched catalog check (Phase 0)**: Trước khi sinh Stitch và implement, bắt buộc đối soát danh mục/sản phẩm demo trên cửa hàng với ngành hàng thương hiệu mục tiêu. Nếu dữ liệu trên store lệch ngành (vd: store chứa sản phẩm nệm trong khi theme làm về rượu vang), phải chạy HaravanDemoKit để seed dữ liệu đúng ngành trước khi thiết kế và preview.
 ## 2. Bắt buộc bưng nguyên
 
 Implement phải khớp 1-1 với Stitch ở các mặt sau:
@@ -26,13 +26,12 @@ Implement phải khớp 1-1 với Stitch ở các mặt sau:
 - **Layout grid trong từng section**: số column, chiều rộng tương đối, vị trí asset/text.
 - **Copy text**: heading, paragraph, button label, badge, label form. Lấy đúng chữ Stitch (sau khi Việt hóa nếu Stitch tiếng Anh).
 - **Color role**: primary, surface, text, muted, border, sale, success — map đúng giá trị Stitch.
-- **Typography role**: heading scale, body size, weight, line-height — map đúng tỉ lệ Stitch.
-- **Spacing rhythm**: padding section, gap grid, margin element — giữ tỉ lệ Stitch (có thể quy đổi token nhưng phải cùng tỉ lệ).
+- **Typography role**: heading scale, body size, weight, line-height — map đúng tỉ lệ Stitch. **Bắt buộc với tiếng Việt**: heading line-height BẮT BUỘC >= 1.18 (khuyến nghị 1.2–1.35), TUYỆT ĐỐI KHÔNG dùng line-height <= 1.1 để tránh xén cụt các dấu thanh/mũ tiếng Việt (ể, ệ, ỗ, ứ, ừ, ặ...).
 - **Component pattern**: card style (border, radius, shadow, hover), button style (size, fill, hover), input style, badge style.
 - **Icon style**: line vs solid, weight, size box.
-- **Image ratio**: hero 16:9, card 1:1, banner 21:9 — giữ đúng, không đổi.
+- **Image ratio**: giữ ratio đo được từ Stitch cho từng slot. Chỉ dùng ratio convention của theme khi Stitch không chỉ định và phải ghi deviation; không ép hero/card/banner về một tỷ lệ hardcode.
 - **Empty state / sold-out / sale state**: nếu Stitch có, phải implement. Nếu Stitch không có, phải hỏi user (không tự thiết kế).
-- **MOTION/INTERACTION SPEC**: hover effect, entrance animation, JS slider (dots/arrows/peek), marquee, countdown, counter đã spec trong design là BỀ MẶT FIDELITY — thiếu một interaction đã spec = fidelity gap, không phải "extra tùy chọn". Dùng slider/animation lib CÓ SẴN của theme (thêm lib mới = deviation phải log); tôn trọng `prefers-reduced-motion`; countdown/counter bind data thật (settings deadline / object counts), không fake số.
+- **MOTION/INTERACTION SPEC**: hover effect, entrance animation, JS slider (dots/arrows/peek), marquee, countdown, counter đã spec trong design là BỀ MẶT FIDELITY — thiếu một interaction đã spec = fidelity gap, không phải "extra tùy chọn". Dùng slider/animation lib CÓ SẴN của theme (thêm lib mới = deviation phải log); tuân motion contract của workspace; countdown/counter bind data thật (settings deadline / object counts), không fake số.
 
 ## 3. Allowed deviation (hẹp, có lý do)
 
@@ -78,6 +77,7 @@ Stitch thường thiếu:
 
 Trước khi viết Liquid:
 
+0. **Stitch chunking (chống timeout ~300s)**: Stitch API Gateway có server cutoff ngắt sau ~300s cho prompt dài. Bắt buộc chia trang dài thành các chunks <= 6 sections và <= 1.5KB mỗi prompt (Top, Middle, Bottom), sinh qua `stitch_generate.js --prompt-file <path>`.
 1. **Stitch inventory**: list từng section Stitch, đánh số, ghi tên ngắn (`hero`, `featured-collections`, `bestseller-grid`, ...). Ghi vào ledger.
 2. **Mapping table**: với mỗi section Stitch, map sang section/snippet Liquid sẽ tạo. Ghi rõ Stitch section X → `sections/x.liquid` + `snippets/x-card.liquid`.
 3. **Token map**: extract color/font/spacing từ Stitch CSS, đề xuất token name. Đặt vào `:root` của theme. Không nhồi hex/font-family vào component.
@@ -127,7 +127,7 @@ Sau khi implement xong:
 3. **Extend file CSS/JS có sẵn theo đúng template**: map kiến trúc asset thật của theme trước (`ls assets/`) — home → `index.*`, shell/global → `main.*`, blog → `blog.*`, article → `article.*`, product/collection/cart/search/page/customer/404 → cặp file riêng của template đó. KHÔNG tạo file CSS/JS mới song song (lỗi thật: `f1-shell.scss.liquid` cạnh `index.scss.liquid` sẵn có); file mới chỉ khi theme thật sự không có slot, wire qua cơ chế include sẵn của theme, và log deviation.
 4. **SCSS server-side**: giữ file `.scss.*` của theme (không đổi sang `.css` mới). Cấu trúc = SCSS NESTING; giá trị property = plain CSS. Cấm `min()`/`max()` chữ thường (compiler legacy chết cả file — `audit:content` chặn bằng `SCSS_MIN_MAX`); dùng `width: 100%; max-width: var(--x)`, `clamp()`/`var()`/`calc()` OK; bất khả kháng → `unquote("min(...)")`. Sau upload: fetch từng `.scss.*` đã đụng từ CDN, grep `Error >`.
 5. **Đơn vị REM-first**: rem = type scale/spacing/section padding/gap (Stitch px ÷ 16); em = chỉ padding trong button/badge, icon theo text; px = border 1–2px, hairline, breakpoint. `html { font-size: 100% }` — cấm hack 62.5%.
-6. **Asset jpg/png ONLY — cấm webp** (`audit:content` chặn bằng `WEBP_ASSET`/`WEBP_REF`). Ảnh từ Stitch export/AI generate phải nén qua sharp (resize đúng slot, q~80) trước khi vào `assets/`.
+6. **Raster jpg/png — cấm webp** (`audit:content` chặn bằng `WEBP_ASSET`/`WEBP_REF`). Logo/icon vector được dùng SVG khi đúng style, có `width`/`height` rõ ràng và không chứa script/remote reference. Ảnh raster từ Stitch export/AI generate phải nén qua sharp (resize đúng slot, q~80) trước khi vào `assets/`.
 7. **Comment hygiene**: không banner generator ("Stitch source: ..."), không comment tường thuật, không TODO sót. Provenance ghi vào LEDGER, không ghi vào code. Mật độ comment theo theme sẵn có.
 
 **Mechanical checks (chạy máy móc trước MỌI checkpoint/handoff — hit nào fix ngay):**
@@ -166,9 +166,9 @@ Sau khi implement xong:
 Trước khi đóng task, phải pass tất cả:
 
 - [ ] Section list khớp Stitch (số lượng, thứ tự, tên).
-- [ ] **Screen coverage**: mọi màn hình trong GLOBAL RULES checklist (trang + modal + mobile) đã convert hoặc có deviation/gap log hợp lệ.
+- [ ] **Screen coverage**: mọi màn hình trong Stitch export và capability được chọn đã convert hoặc có deviation/gap log hợp lệ; catalog tùy chọn không bị ép thành baseline.
 - [ ] `stitch-fidelity.json` và `stitch-fidelity-token-map.json` tồn tại, phản ánh đúng section/asset/token/copy status hiện tại.
-- [ ] Mỗi section có screenshot side-by-side với Stitch hoặc % visual match >= 92% nếu chạy `visual_diff.js`.
+- [ ] Mỗi section có screenshot side-by-side với Stitch. Nếu dùng `visual_diff.js` trên hai ảnh cùng kích thước, đọc `ratio` là tỷ lệ pixel khác biệt; mục tiêu fidelity 92% tương ứng `ratio <= 0.08`, không nhầm với diff so theme cũ.
 - [ ] Tất cả deviation đã ghi vào ledger với lý do hợp lệ.
 - [ ] Color/font/spacing map qua token, không hex/family lạc.
 - [ ] Empty/sold-out/sale/loading state đã trao đổi với user (giữ default hoặc design rõ).
