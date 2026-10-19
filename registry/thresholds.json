@@ -1,0 +1,8 @@
+{
+  "minTextPx": 12,
+  "minTapHitPx": 24,
+  "mobileDensity": {
+    "maxSectionSpacePx": 80,
+    "minCardsVisible375": 2
+  }
+}

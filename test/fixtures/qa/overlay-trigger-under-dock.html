@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>overlay trigger under dock</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:16px/1.5 Arial,sans-serif;color:#111;background:#fff;padding-bottom:64px}
+.spacer{height:470px}
+.btn{display:block;width:44px;height:44px;margin-left:120px;border:1px solid #111;background:#fff;cursor:pointer}
+.tail{height:900px}
+.dock{position:fixed;left:0;right:0;bottom:0;height:56px;background:#eee;display:flex}
+.dock a{flex:1;display:flex;align-items:center;justify-content:center;color:#111}
+.panel{position:fixed;top:20px;left:10px;right:10px;max-height:calc(100vh - 40px);overflow:auto;background:#fff;border:1px solid #111;padding:16px;z-index:30;display:none}
+.panel.is-open{display:block}
+.panel__close{width:44px;height:44px;border:0;background:#eee;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<main style="padding:0 24px"><h1>Cart</h1><div class="spacer"></div><button class="btn" type="button" data-action="open-panel" aria-label="Quick view"></button><div class="tail"></div></main>
+<nav class="dock"><a href="overlay-fit-good.html">Home</a><a href="overlay-fit-good.html">Shop</a><a href="overlay-fit-good.html">Account</a></nav>
+<div class="panel" id="panel" role="dialog" aria-label="Panel"><h2>Panel</h2><p>Quick view.</p><button class="panel__close" type="button" data-action="close-panel" aria-label="Close">x</button></div>
+<script>
+var panel=document.getElementById('panel');
+document.addEventListener('click',function(e){var a=e.target.closest('[data-action]');if(!a)return;var v=a.getAttribute('data-action');if(v==='open-panel')panel.classList.add('is-open');if(v==='close-panel')panel.classList.remove('is-open')});
+</script>
+</body>
+</html>

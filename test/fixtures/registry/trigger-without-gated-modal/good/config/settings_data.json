@@ -1,0 +1,10 @@
+{
+  "current": {
+    "booking_modal_enable": true,
+    "booking_label": "Đặt lịch",
+    "booking_title": "Đặt lịch tư vấn",
+    "guide_enable": true,
+    "guide_label": "Hướng dẫn chọn size",
+    "guide_title": "Bảng quy đổi"
+  }
+}

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>{{ page_title | escape }}</title>
+  {{ content_for_header }}
+</head>
+<body>
+  <main id="MainContent">{{ content_for_layout }}</main>
+  {%- if settings.guide_enable -%}
+    {%- include 'guide-modal' -%}
+  {%- endif -%}
+  {%- include 'booking-modal' -%}
+</body>
+</html>

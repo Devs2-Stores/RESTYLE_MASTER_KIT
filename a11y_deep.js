@@ -123,13 +123,13 @@ function buildReport(args, results) {
 
 async function main() {
   const args = parseArgs(process.argv);
-  if (args.help || !args.base) { usage(); process.exit(args.help ? 0 : 1); }
+  if (args.help || !args.base) { usage(); return args.help ? 0 : 1; }
   fs.mkdirSync(args.out, { recursive: true });
 
   const axeSource = locateAxeSource();
   if (!axeSource) {
     console.error('ERROR: axe-core not installed. Run `npm install` inside RESTYLE_MASTER_KIT first.');
-    process.exit(1);
+    return 1;
   }
 
   const puppeteer = requirePuppeteer();
@@ -166,8 +166,14 @@ async function main() {
   console.log(`Output: ${args.out}`);
   console.log(`Pairs: ${results.length}`);
   console.log(`Fail-on: ${args.failOn}`);
-  if (failed) { console.log('FAIL: violations at or above threshold.'); process.exit(1); }
+  if (failed) { console.log('FAIL: violations at or above threshold.'); return 1; }
   console.log('PASS: no violations at threshold.');
+  return 0;
 }
 
-main().catch((e) => { console.error('ERROR: ' + e.message); process.exit(1); });
+main().then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
+  console.error('ERROR: ' + e.message);
+  process.exitCode = 1;
+});

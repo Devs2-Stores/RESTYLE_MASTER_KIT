@@ -1,0 +1,859 @@
+{
+  "version": 1,
+  "source": "scout-union.md + antifan-live-defects.md + P0d baseline, 2026-10-16",
+  "rows": [
+    {
+      "slug": "proxy-catalogue-miss-hint",
+      "ids": [
+        "U-AF-01"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "tools-list-digest-handshake",
+      "ids": [
+        "U-AF-02"
+      ],
+      "priority": "P0",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): proxy reports once when the running app cannot answer catalogue.digest. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "workspace-root-silent-fallback",
+      "ids": [
+        "U-AF-03"
+      ],
+      "priority": "P0",
+      "owner": "antifan",
+      "packet": "A1",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): QA refuses non-theme roots (WORKSPACE_NOT_THEME) and names the accented sibling. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "receipt-write-swallowed",
+      "ids": [
+        "U-AF-04"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A1",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "qa-default-profile-audit",
+      "ids": [
+        "U-AF-05"
+      ],
+      "priority": "P0",
+      "owner": "antifan",
+      "packet": "A1+A2",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): theme.qa_validate and the workflow default to build-strict with default thresholds. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "qa-per-call-settle-overrides",
+      "ids": [
+        "U-AF-06"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "target-drain-cascade",
+      "ids": [
+        "U-AF-07"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "declined",
+      "reason": "Recovery (>5 s detach + queue clear) already exists at HEAD; only a soak run would prove the residue, not a code change."
+    },
+    {
+      "slug": "qa-matrix-coverage-floor",
+      "ids": [
+        "U-AF-08"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A1",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "scanner-missing-classes",
+      "ids": [
+        "U-AF-09"
+      ],
+      "priority": "P0",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "cockpit-missing-tools",
+      "ids": [
+        "U-AF-10"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "declined",
+      "reason": "Beyond the checklist items shipped in A4, new cockpit tools are a feature request, not a defect that let PASS leak."
+    },
+    {
+      "slug": "checklist-missing-items",
+      "ids": [
+        "U-AF-11"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "qa-debt-not-persisted",
+      "ids": [
+        "U-AF-12"
+      ],
+      "priority": "P0",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "gate-reminder-cadence",
+      "ids": [
+        "U-AF-13"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "open"
+    },
+    {
+      "slug": "annotation-classifier-readonly",
+      "ids": [
+        "U-AF-14"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "per-call-run-id",
+      "ids": [
+        "U-AF-15"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A1",
+      "status": "open"
+    },
+    {
+      "slug": "cart-telemetry-static-false",
+      "ids": [
+        "U-AF-16"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "open"
+    },
+    {
+      "slug": "hs05-wording",
+      "ids": [
+        "U-AF-17"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "open"
+    },
+    {
+      "slug": "full-page-jpeg",
+      "ids": [
+        "U-AF-18"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A1",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): full_page accepts jpeg and stitches tiles past 16384 CSS px. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "retarget-recovery-hint",
+      "ids": [
+        "U-AF-19"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "open"
+    },
+    {
+      "slug": "await-cdn-liquid-note",
+      "ids": [
+        "U-AF-20"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "P2b+A3",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): await_cdn_sync accepts .liquid with expectContains/expectNotContains. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "plan-header-status",
+      "ids": [
+        "U-AF-21"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A4",
+      "status": "open"
+    },
+    {
+      "slug": "local-export-default",
+      "ids": [
+        "U-KIT-01"
+      ],
+      "priority": "P0",
+      "owner": "kit",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "contract-promote",
+      "ids": [
+        "U-KIT-02"
+      ],
+      "priority": "P0",
+      "owner": "kit",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "lint-registry-rules",
+      "ids": [
+        "U-KIT-03"
+      ],
+      "priority": "P1",
+      "owner": "kit",
+      "packet": "P1",
+      "status": "fixed"
+    },
+    {
+      "slug": "settings-merge-dedupe",
+      "ids": [
+        "U-KIT-04"
+      ],
+      "priority": "P1",
+      "owner": "kit",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "skills-sync-silent-skip",
+      "ids": [
+        "U-KIT-05"
+      ],
+      "priority": "P1",
+      "owner": "kit",
+      "packet": "P5",
+      "status": "fixed"
+    },
+    {
+      "slug": "capture-donor-selectors",
+      "ids": [
+        "U-KIT-06"
+      ],
+      "priority": "P1",
+      "owner": "kit",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "locked-root-font",
+      "ids": [
+        "U-KIT-07"
+      ],
+      "priority": "P1",
+      "owner": "kit",
+      "packet": "P1+P6",
+      "status": "fixed"
+    },
+    {
+      "slug": "preflight-coverage",
+      "ids": [
+        "U-KIT-08"
+      ],
+      "priority": "P2",
+      "owner": "kit",
+      "packet": "P4",
+      "status": "open"
+    },
+    {
+      "slug": "master-prompt-drift",
+      "ids": [
+        "U-KIT-09"
+      ],
+      "priority": "P2",
+      "owner": "kit",
+      "packet": "P8",
+      "status": "open"
+    },
+    {
+      "slug": "qa-loop-harness",
+      "ids": [
+        "U-KIT-10"
+      ],
+      "priority": "P2",
+      "owner": "kit",
+      "packet": "P2a",
+      "status": "open"
+    },
+    {
+      "slug": "variant-image-pipeline",
+      "ids": [
+        "U-DK-01"
+      ],
+      "priority": "P0",
+      "owner": "demokit",
+      "packet": "P3",
+      "status": "approval-pending",
+      "reason": "Pipeline code and stub tests are green; the live recolor run is a paid image-generation call that needs approved spend."
+    },
+    {
+      "slug": "readiness-content-checks",
+      "ids": [
+        "U-DK-02"
+      ],
+      "priority": "P0",
+      "owner": "demokit",
+      "packet": "P3",
+      "status": "fixed"
+    },
+    {
+      "slug": "client-retry-verify",
+      "ids": [
+        "U-DK-03"
+      ],
+      "priority": "P1",
+      "owner": "demokit",
+      "packet": "P3",
+      "status": "fixed"
+    },
+    {
+      "slug": "seed-scripts-pile",
+      "ids": [
+        "U-DK-04"
+      ],
+      "priority": "P2",
+      "owner": "demokit",
+      "packet": "P3",
+      "status": "declined",
+      "reason": "Per-project seed scripts are history, not a defect; the kit is unversioned and deleting them needs a git baseline first."
+    },
+    {
+      "slug": "demo-audit-variant-sentence",
+      "ids": [
+        "U-SK-01"
+      ],
+      "priority": "P0",
+      "owner": "skills",
+      "packet": "P3",
+      "status": "fixed"
+    },
+    {
+      "slug": "partners-update-flow",
+      "ids": [
+        "U-SK-02",
+        "U-SK-17"
+      ],
+      "priority": "P0",
+      "owner": "skills",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "final-showcase-local-default",
+      "ids": [
+        "U-SK-03"
+      ],
+      "priority": "P0",
+      "owner": "skills",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "router-missing-rows",
+      "ids": [
+        "U-SK-04"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "dead-skill-routes",
+      "ids": [
+        "U-SK-05"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P5+P8",
+      "status": "fixed"
+    },
+    {
+      "slug": "audit-fallback-wording",
+      "ids": [
+        "U-SK-06"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "settings-audit-rules",
+      "ids": [
+        "U-SK-07"
+      ],
+      "priority": "P0",
+      "owner": "skills",
+      "packet": "P1",
+      "status": "fixed"
+    },
+    {
+      "slug": "cheatsheet-rows",
+      "ids": [
+        "U-SK-08"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "gen-images-exit-code",
+      "ids": [
+        "U-SK-09"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P3",
+      "status": "fixed"
+    },
+    {
+      "slug": "stitch-guide-scale",
+      "ids": [
+        "U-SK-10"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "qa-skill-vocabulary",
+      "ids": [
+        "U-SK-11"
+      ],
+      "priority": "P0",
+      "owner": "skills",
+      "packet": "P2b",
+      "status": "fixed"
+    },
+    {
+      "slug": "cockpit-dangling-refs",
+      "ids": [
+        "U-SK-12"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P2b",
+      "status": "fixed"
+    },
+    {
+      "slug": "proof-gate-floor",
+      "ids": [
+        "U-SK-13"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P2b",
+      "status": "fixed"
+    },
+    {
+      "slug": "settings-key-off-pass",
+      "ids": [
+        "U-SK-14"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P3",
+      "status": "fixed"
+    },
+    {
+      "slug": "ux-ax-numeric-rubric",
+      "ids": [
+        "U-SK-15"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "demo-kit-model-visibility",
+      "ids": [
+        "U-SK-16"
+      ],
+      "priority": "P1",
+      "owner": "skills",
+      "packet": "P1b",
+      "status": "declined",
+      "reason": "User decision 2026-10-16: haravan-demo-kit stays slash-only (disable-model-invocation: true); the router row points at /haravan-demo-kit (router-missing-rows)."
+    },
+    {
+      "slug": "partners-approval-rule",
+      "ids": [
+        "U-RL-01"
+      ],
+      "priority": "P0",
+      "owner": "rules",
+      "packet": "P4",
+      "status": "fixed"
+    },
+    {
+      "slug": "theme-rules-qa-gate-scale",
+      "ids": [
+        "U-RL-02"
+      ],
+      "priority": "P0",
+      "owner": "rules",
+      "packet": "P1b+P2b",
+      "status": "fixed"
+    },
+    {
+      "slug": "include-scope-rule",
+      "ids": [
+        "U-RL-03"
+      ],
+      "priority": "P1",
+      "owner": "rules",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "emoji-vs-header",
+      "ids": [
+        "U-RL-04"
+      ],
+      "priority": "P2",
+      "owner": "rules",
+      "packet": "P1b",
+      "status": "open"
+    },
+    {
+      "slug": "data-fix-step",
+      "ids": [
+        "U-RL-05"
+      ],
+      "priority": "P1",
+      "owner": "rules",
+      "packet": "P1b",
+      "status": "fixed"
+    },
+    {
+      "slug": "bug-entries",
+      "ids": [
+        "U-RL-06"
+      ],
+      "priority": "P2",
+      "owner": "rules",
+      "packet": "P6b",
+      "status": "approval-pending",
+      "reason": "themes/bugs/*.md writes need a per-entry user approval (AGENTS.md section 10)."
+    },
+    {
+      "slug": "include-scope-latent",
+      "ids": [
+        "U-TH-01"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P1",
+      "status": "declined",
+      "reason": "No live bug today; guarded by lint rule include-scope-leak instead of renaming 28 assigns."
+    },
+    {
+      "slug": "scheme-before-img-url",
+      "ids": [
+        "U-TH-02"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "open"
+    },
+    {
+      "slug": "swatch-palette-from-setting",
+      "ids": [
+        "U-TH-03"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed"
+    },
+    {
+      "slug": "mobile-type-scale",
+      "ids": [
+        "U-TH-04"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed"
+    },
+    {
+      "slug": "hardcoded-visible-strings",
+      "ids": [
+        "U-TH-05"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed"
+    },
+    {
+      "slug": "utc-date-idiom",
+      "ids": [
+        "U-TH-06"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P1",
+      "status": "fixed-disk"
+    },
+    {
+      "slug": "theme-scoped-cdn-urls",
+      "ids": [
+        "U-TH-07"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "approval-pending",
+      "reason": "Rewriting 50 settings_data.json CDN URLs needs approval of the data patch; only the assertion ships now."
+    },
+    {
+      "slug": "countdown-static-digits",
+      "ids": [
+        "U-TH-08"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed-disk"
+    },
+    {
+      "slug": "featured-image-id",
+      "ids": [
+        "U-TH-09"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed-disk"
+    },
+    {
+      "slug": "quickview-trigger-gate",
+      "ids": [
+        "U-TH-10"
+      ],
+      "priority": "P1",
+      "owner": "theme",
+      "packet": "P1",
+      "status": "fixed-disk"
+    },
+    {
+      "slug": "text-typed-threshold",
+      "ids": [
+        "U-TH-11"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "declined",
+      "reason": "Kept as type text (Haravan schema renders number inputs inconsistently); recorded as a QA_WAIVERS.json entry against settings-text-typed-number."
+    },
+    {
+      "slug": "stale-snapshot-dirs",
+      "ids": [
+        "U-TH-12"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6b",
+      "status": "open"
+    },
+    {
+      "slug": "card-fetchpriority-param",
+      "ids": [
+        "U-TH-13"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "fixed-disk"
+    },
+    {
+      "slug": "cdn-sync-generation-fence",
+      "ids": [
+        "LIVE-1"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "tap-hit-area-pseudo",
+      "ids": [
+        "LIVE-2"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "bound-tab-gone-message",
+      "ids": [
+        "LIVE-3"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): dead bound tab returns TARGET_STALE with autoBindCandidate; rebind_target auto. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "timed-popup-occluder",
+      "ids": [
+        "LIVE-4"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "sticky-released-occluder",
+      "ids": [
+        "LIVE-5"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "approval-pending",
+      "reason": "Implemented in AntiFan worktree E:/Work/apps/AntiFan-toolchain-wt (branch toolchain/qa-truthfulness, typecheck 0, target suites green); merge into main awaits the user (decision D7)."
+    },
+    {
+      "slug": "batch-matrix-budget-stale",
+      "ids": [
+        "LIVE-7"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): batch_matrix sweeps whole routes inside a 180 s budget and returns remainingRoutes. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "batch-matrix-emulation-retry",
+      "ids": [
+        "LIVE-8"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): widths whose emulation did not land are retried up to twice. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "decorative-text-overlap",
+      "ids": [
+        "LIVE-9"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "open"
+    },
+    {
+      "slug": "state-matrix-escape-focus",
+      "ids": [
+        "LIVE-10"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): Escape without focus/keydown is CLOSE_ESCAPE_UNMEASURED, not a failure. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "state-matrix-backdrop-close",
+      "ids": [
+        "LIVE-11"
+      ],
+      "priority": "P1",
+      "owner": "antifan",
+      "packet": "A2",
+      "status": "fixed",
+      "reason": "Merged into AntiFan main 6211629a and pushed to origin (2026-10-16): close-control picker skips full-viewport scrims. Live effect needs a Desktop restart."
+    },
+    {
+      "slug": "bridge-drop",
+      "ids": [
+        "LIVE-6"
+      ],
+      "priority": "P2",
+      "owner": "antifan",
+      "packet": "A3",
+      "status": "declined",
+      "reason": "Single ECONNREFUSED during a concurrent session restart; needs a soak run to reproduce, no code cause found."
+    },
+    {
+      "slug": "store-card-chip-wrap",
+      "ids": [
+        "BASE-1"
+      ],
+      "priority": "P2",
+      "owner": "theme",
+      "packet": "P6",
+      "status": "open"
+    }
+  ]
+}

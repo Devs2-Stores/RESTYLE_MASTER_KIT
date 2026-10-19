@@ -192,7 +192,7 @@ async function resolvePath(side, srcSpec, pagePath, viewport, outDir) {
 
 async function main() {
   const args = parseArgs(process.argv);
-  if (args.help || !args.before || !args.after) { usage(); process.exit(args.help ? 0 : 1); }
+  if (args.help || !args.before || !args.after) { usage(); return args.help ? 0 : 1; }
   fs.mkdirSync(args.out, { recursive: true });
 
   const results = [];
@@ -228,7 +228,12 @@ async function main() {
     console.log(`| ${r.path} | ${r.viewport} | ${pct} | ${size} | ${r.status} | ${r.error || ''} |`);
   }
   fs.writeFileSync(path.join(args.out, 'visual-diff.json'), JSON.stringify(results, null, 2), 'utf8');
-  if (anyOver) process.exit(1);
+  return anyOver ? 1 : 0;
 }
 
-main().catch((e) => { console.error('ERROR: ' + e.message); process.exit(1); });
+main().then((code) => {
+  process.exitCode = code;
+}).catch((e) => {
+  console.error('ERROR: ' + e.message);
+  process.exitCode = 1;
+});

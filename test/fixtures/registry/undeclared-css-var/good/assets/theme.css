@@ -1,0 +1,8 @@
+:root {
+  --sky-ink: #111418;
+}
+
+.card {
+  color: var(--sky-ink);
+  border: 1px solid var(--sky-optional-line, #e5e7eb);
+}

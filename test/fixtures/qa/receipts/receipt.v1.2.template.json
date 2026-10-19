@@ -1,0 +1,39 @@
+{
+  "receiptVersion": "1.2",
+  "runId": "run-fixture",
+  "attemptId": "attempt-fixture",
+  "annotationId": null,
+  "tabId": "tab-fixture",
+  "documentGeneration": 1,
+  "browserEpoch": 1,
+  "expectedUrl": "https://qa-fixture.myharavan.com/?themeid=1",
+  "observedUrl": "https://qa-fixture.myharavan.com/?themeid=1",
+  "workspaceRoot": "__ROOT__",
+  "verdict": "QA_PASSED",
+  "execution": "COMPLETED",
+  "recovery": {
+    "attempted": 0,
+    "succeeded": 0
+  },
+  "disposition": null,
+  "errorCode": null,
+  "errorMessage": null,
+  "errorReason": null,
+  "passed": true,
+  "criticalCount": 0,
+  "pageCriticalCount": 0,
+  "authRedirect": false,
+  "findings": [],
+  "viewport": {
+    "width": 375,
+    "height": 812
+  },
+  "createdAt": "2026-10-16T08:00:00.000Z",
+  "settingsRatchet": {
+    "ok": true,
+    "newFailures": 0,
+    "legacyDebt": 0,
+    "deadInSchema": 0,
+    "findings": []
+  }
+}

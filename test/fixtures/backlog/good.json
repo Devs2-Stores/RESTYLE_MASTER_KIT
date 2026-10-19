@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "rows": [
+    { "slug": "export-default", "ids": ["U-KIT-01"], "priority": "P0", "owner": "kit", "packet": "P4", "status": "fixed" },
+    { "slug": "contract-promote", "ids": ["U-KIT-02"], "priority": "P0", "owner": "kit", "packet": "P4", "status": "fixed-disk" },
+    { "slug": "seed-pile", "ids": ["U-DK-04"], "priority": "P2", "owner": "demokit", "packet": "P3", "status": "declined", "reason": "History, not a defect." },
+    { "slug": "cdn-urls", "ids": ["U-TH-07"], "priority": "P1", "owner": "theme", "packet": "P6", "status": "approval-pending", "reason": "Data patch needs approval." },
+    { "slug": "chip-wrap", "ids": ["BASE-1"], "priority": "P2", "owner": "theme", "packet": "P6", "status": "open" }
+  ]
+}

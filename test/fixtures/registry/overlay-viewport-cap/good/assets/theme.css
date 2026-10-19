@@ -1,0 +1,25 @@
+.sky-modal {
+  position: fixed;
+  inset: 0;
+}
+
+.sky-modal-backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+.sky-modal-card {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.sky-cart-drawer__panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 360px;
+}

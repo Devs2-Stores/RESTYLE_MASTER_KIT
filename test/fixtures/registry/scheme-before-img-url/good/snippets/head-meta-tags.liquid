@@ -1,0 +1,10 @@
+<meta property="og:image" content="https:{{ product.featured_image | product_img_url: 'grande' }}">
+<meta property="og:image:secure_url" content="https:{{ product.featured_image | product_img_url: 'grande' }}">
+<meta itemprop="url" content="https:{{ article.image.src | img_url: '2048x2048' | escape }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "image": ["https:{{ article.image.src | img_url: '1024x1024' }}"]
+}
+</script>

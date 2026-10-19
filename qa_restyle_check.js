@@ -14,7 +14,9 @@ function parseArgs(argv) {
     viewports: [320, 375, 768, 1024, 1440],
     flow: '',
     headed: false,
-    noFlowReload: false
+    noFlowReload: false,
+    hover: false,
+    minTapTargetPx: 24
   };
 
   for (let i = 2; i < argv.length; i += 1) {
@@ -26,6 +28,8 @@ function parseArgs(argv) {
     else if (value === '--flow') { args.flow = path.resolve(readValue(argv, i, '--flow')); i += 1; }
     else if (value === '--headed') args.headed = true;
     else if (value === '--no-flow-reload') args.noFlowReload = true;
+    else if (value === '--hover') args.hover = true;
+    else if (value === '--min-tap-target-px') { args.minTapTargetPx = parseFiniteNumber(readValue(argv, i, '--min-tap-target-px'), '--min-tap-target-px'); i += 1; }
     else if (value === '--help' || value === '-h') args.help = true;
     else throw new Error(`Unknown argument: ${value}`);
   }
@@ -44,6 +48,8 @@ Options:
   --out <dir>          Output directory. Default: ../scratch/qa
   --headed             Run browser headed.
   --no-flow-reload     Do not reload between multiple matching flows.
+  --hover              Audit visible hover delta and geometry on desktop.
+  --min-tap-target-px  Mobile tap target threshold. Default: 24 (WCAG 2.2 SC 2.5.8); use 0 to disable.
 `);
 }
 
@@ -191,6 +197,18 @@ async function runFlowStep(page, step) {
     await page.waitForSelector(selector, { timeout, visible: true });
     await page.evaluate((sel) => { document.querySelector(sel).value = ''; }, selector);
     await page.type(selector, String(spec.value || ''));
+  } else if (step.action === 'fillAndWaitForResponse' || step.fillAndWaitForResponse) {
+    const spec = resolveStepSpec(step, 'fillAndWaitForResponse');
+    const selector = requireSelector(spec.selector, 'fillAndWaitForResponse');
+    const urlIncludes = spec.urlIncludes || step.urlIncludes;
+    if (!urlIncludes) throw new Error('fillAndWaitForResponse requires urlIncludes.');
+    await page.waitForSelector(selector, { timeout, visible: true });
+    await page.evaluate((sel) => { document.querySelector(sel).value = ''; }, selector);
+    const responsePromise = page.waitForResponse((response) => response.url().includes(urlIncludes), { timeout });
+    await page.type(selector, String(spec.value || step.value || ''));
+    const response = await responsePromise;
+    const expectedStatus = Number(spec.status || step.status || 200);
+    if (response.status() !== expectedStatus) throw new Error(`Expected response ${expectedStatus}, got ${response.status()}.`);
   } else if (step.action === 'press' || step.press) {
     const spec = resolveStepSpec(step, 'press');
     const key = spec.value || 'Enter';
@@ -248,7 +266,46 @@ async function runFlow(page, flowConfig, pagePath, viewportWidth, url, noFlowRel
   return results;
 }
 
-async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, noFlowReload) {
+async function auditHover(page) {
+  const handles = await page.$$('a, button, [role="button"]');
+  const issues = [];
+  for (const handle of handles) {
+    const eligible = await handle.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none'
+        && !el.disabled && el.getAttribute('aria-disabled') !== 'true' && !el.hasAttribute('inert');
+    });
+    if (!eligible) continue;
+    const snapshot = (el) => el.evaluate((node) => {
+      const readStyle = (target, pseudo) => {
+        const style = getComputedStyle(target, pseudo);
+        return [style.color, style.backgroundColor, style.borderColor, style.textDecorationColor, style.transform, style.opacity, style.boxShadow].join('|');
+      };
+      const descendants = Array.from(node.querySelectorAll('*')).slice(0, 20);
+      const rect = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return {
+        visual: [readStyle(node), readStyle(node, '::before'), readStyle(node, '::after'), ...descendants.map((child) => readStyle(child))].join('||'),
+        width: rect.width,
+        height: rect.height,
+        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft].map(parseFloat),
+        label: (node.textContent || node.getAttribute('aria-label') || node.tagName).trim().replace(/\s+/g, ' ').slice(0, 60)
+      };
+    });
+    const before = await snapshot(handle);
+    await handle.hover();
+    await sleep(80);
+    const after = await snapshot(handle);
+    if (before.visual === after.visual) issues.push({ rule: 'NO_VISIBLE_HOVER', detail: before.label });
+    if (Math.abs(before.width - after.width) > 1 || Math.abs(before.height - after.height) > 1) issues.push({ rule: 'HOVER_LAYOUT_SHIFT', detail: before.label });
+    if (before.padding.some((value, index) => after.padding[index] + 0.5 < value)) issues.push({ rule: 'HOVER_PADDING_COLLAPSE', detail: before.label });
+    await page.mouse.move(0, 0);
+  }
+  return issues;
+}
+
+async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, noFlowReload, hover, minTapTargetPx) {
   const page = await browser.newPage();
   await page.setViewport({
     width: viewportWidth,
@@ -277,6 +334,7 @@ async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, n
     pageErrors,
     overflow: null,
     a11y: [],
+    hover: [],
     flow: [],
     status: 'pass'
   };
@@ -289,7 +347,7 @@ async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, n
       const winW = window.innerWidth;
       return docW > winW ? { docWidth: docW, winWidth: winW } : null;
     });
-    result.a11y = await page.evaluate((isMobile) => {
+    result.a11y = await page.evaluate((options) => {
       const issues = [];
       // Missing alt on img
       for (const img of document.querySelectorAll('img')) {
@@ -298,20 +356,20 @@ async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, n
           issues.push({ rule: 'MISSING_ALT', detail: src || 'unknown' });
         }
       }
-      // Tap target < 44x44 on mobile
-      if (isMobile) {
+      if (options.isMobile && options.minTapTargetPx > 0) {
         const interactive = 'a, button, [role="button"], input, select, textarea, [tabindex]';
         for (const el of document.querySelectorAll(interactive)) {
           const r = el.getBoundingClientRect();
-          if (r.width > 0 && r.height > 0 && (r.width < 44 || r.height < 44)) {
+          if (r.width > 0 && r.height > 0 && (r.width < options.minTapTargetPx || r.height < options.minTapTargetPx)) {
             const label = (el.textContent || el.getAttribute('aria-label') || el.tagName).trim().slice(0, 30);
             issues.push({ rule: 'SMALL_TAP_TARGET', detail: label + ' (' + Math.round(r.width) + 'x' + Math.round(r.height) + 'px)' });
           }
         }
       }
       return issues;
-    }, viewportWidth <= 480);
+    }, { isMobile: viewportWidth <= 480, minTapTargetPx });
     result.flow = await runFlow(page, flow, pagePath, viewportWidth, url, noFlowReload);
+    if (hover && viewportWidth > 480) result.hover = await auditHover(page);
     const fileName = `${sanitizePath(pagePath)}-${viewportWidth}.png`;
     const screenshotPath = path.join(outDir, fileName);
     await page.screenshot({ path: screenshotPath, fullPage: true, type: 'png' });
@@ -319,7 +377,7 @@ async function checkPage(browser, base, pagePath, viewportWidth, outDir, flow, n
     const flowFailed = result.flow.some((item) => item.status === 'fail');
     if (pageErrors.length || flowFailed) {
       result.status = 'fail';
-    } else if (consoleErrors.length || result.overflow || result.a11y?.length) {
+    } else if (consoleErrors.length || result.overflow || result.a11y?.length || result.hover?.length) {
       result.status = 'warn';
     }
   } catch (error) {
@@ -341,6 +399,7 @@ function writeReport(outDir, results) {
       result.error,
       result.overflow ? `overflow ${result.overflow.docWidth}px > ${result.overflow.winWidth}px` : '',
       result.a11y?.length ? `${result.a11y.length} a11y issue(s)` : '',
+      result.hover?.length ? `${result.hover.length} hover issue(s)` : '',
       result.consoleErrors?.length ? `${result.consoleErrors.length} console errors` : '',
       result.pageErrors?.length ? `${result.pageErrors.length} page errors` : '',
       result.flow?.some((item) => item.status === 'fail') ? 'flow failed' : ''
@@ -361,6 +420,14 @@ function writeReport(outDir, results) {
     lines.push('', '## A11y Detail');
     lines.push(...a11yLines);
   }
+  const hoverLines = [];
+  for (const result of results) {
+    if (result.hover && result.hover.length) {
+      hoverLines.push('', `### Hover: ${result.path} @ ${result.viewport}px`);
+      for (const issue of result.hover) hoverLines.push(`- [${issue.rule}] ${issue.detail}`);
+    }
+  }
+  if (hoverLines.length) lines.push('', '## Hover Detail', ...hoverLines);
   fs.writeFileSync(path.join(outDir, 'qa-results.md'), `${lines.join('\n')}\n`);
 }
 
@@ -379,7 +446,7 @@ async function main() {
     const results = [];
     for (const pagePath of args.paths) {
       for (const viewport of args.viewports) {
-        results.push(await checkPage(browser, args.base, pagePath, viewport, args.out, flow, args.noFlowReload));
+        results.push(await checkPage(browser, args.base, pagePath, viewport, args.out, flow, args.noFlowReload, args.hover, args.minTapTargetPx));
       }
     }
     writeReport(args.out, results);

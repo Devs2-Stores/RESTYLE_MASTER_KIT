@@ -1,0 +1,421 @@
+[
+  {
+    "slug": "include-global-fallback",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "LIQUID_INCLUDE_GLOBAL_FALLBACK",
+    "runtimeProbe": null,
+    "rule": "A snippet must not fall back to a global object (product, collection, article, blog, page, customer) when its include parameter is blank or shadowed.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/include-global-fallback/bad",
+      "good": "test/fixtures/registry/include-global-fallback/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "include-scope-leak",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "LIQUID_INCLUDE_SCOPE_LEAK",
+    "runtimeProbe": null,
+    "rule": "An includer must not read a variable that only the included snippet assigns (include shares scope).",
+    "fixtures": {
+      "bad": "test/fixtures/registry/include-scope-leak/bad",
+      "good": "test/fixtures/registry/include-scope-leak/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "scheme-before-img-url",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "LIQUID_SCHEME_BEFORE_IMG_URL",
+    "runtimeProbe": null,
+    "rule": "Do not prefix img_url, product_img_url and asset_url output with https: outside absolute-URL contexts (og:*, itemprop url, ld+json).",
+    "fixtures": {
+      "bad": "test/fixtures/registry/scheme-before-img-url/bad",
+      "good": "test/fixtures/registry/scheme-before-img-url/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "hardcoded-swatch-palette",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "LIQUID_HARDCODED_PALETTE",
+    "runtimeProbe": null,
+    "rule": "A colour-name to hex palette must come from a merchant setting, never from three or more hex literals assigned in one if chain.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/hardcoded-swatch-palette/bad",
+      "good": "test/fixtures/registry/hardcoded-swatch-palette/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "hardcoded-visible-text",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": [
+      "LIQUID_HARDCODED_VISIBLE_TEXT",
+      "JS_HARDCODED_VISIBLE_TEXT"
+    ],
+    "runtimeProbe": null,
+    "rule": "User-visible text (Liquid text nodes, aria-label, title, alt, placeholder, literal tables, JS literals, ThemeUtils.t fallbacks) must come from a schema setting.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/hardcoded-visible-text/bad",
+      "good": "test/fixtures/registry/hardcoded-visible-text/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "utc-date-idiom",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "JS_UTC_DATE_IDIOM",
+    "runtimeProbe": null,
+    "rule": "A date-only string must not be derived from toISOString (UTC) when it is used as a local date.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/utc-date-idiom/bad",
+      "good": "test/fixtures/registry/utc-date-idiom/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "root-font-shrink",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "CSS_ROOT_FONT_SHRINK",
+    "runtimeProbe": null,
+    "rule": "The root font size must not shrink below 16px except to the contract mobileRootFontPx.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/root-font-shrink/bad",
+      "good": "test/fixtures/registry/root-font-shrink/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "font-below-min",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "CSS_FONT_BELOW_MIN",
+    "runtimeProbe": "min-font-size",
+    "rule": "Resolved font-size (rem at the contract mobile root) must be at least thresholds.minTextPx.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/font-below-min/bad",
+      "good": "test/fixtures/registry/font-below-min/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "undeclared-css-var",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "CSS_UNDECLARED_VAR",
+    "runtimeProbe": null,
+    "rule": "var(--x) without a fallback must reference a custom property declared somewhere in the theme.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/undeclared-css-var/bad",
+      "good": "test/fixtures/registry/undeclared-css-var/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "icon-stroke-mismatch",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "SVG_ICON_STROKE_MISMATCH",
+    "runtimeProbe": "icon-stroke",
+    "rule": "Outline icons must share one stroke-width across the theme.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/icon-stroke-mismatch/bad",
+      "good": "test/fixtures/registry/icon-stroke-mismatch/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "overlay-viewport-cap",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "CSS_OVERLAY_NO_VIEWPORT_CAP",
+    "runtimeProbe": "overlay-fit",
+    "rule": "A modal, drawer or popup panel must be bounded to the viewport (max-height, vh/dvh height, or top and bottom).",
+    "fixtures": {
+      "bad": "test/fixtures/registry/overlay-viewport-cap/bad",
+      "good": "test/fixtures/registry/overlay-viewport-cap/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "trigger-without-gated-modal",
+    "tier": "blocker",
+    "gate": "lint",
+    "staticRule": "LIQUID_TRIGGER_WITHOUT_GATE",
+    "runtimeProbe": null,
+    "rule": "A trigger that opens a gated modal must sit inside the same condition that gates the modal.",
+    "fixtures": {
+      "bad": "test/fixtures/registry/trigger-without-gated-modal/bad",
+      "good": "test/fixtures/registry/trigger-without-gated-modal/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "settings-duplicate-semantic-key",
+    "tier": "warn",
+    "gate": "settings-audit",
+    "staticRule": "duplicate-semantic-key",
+    "runtimeProbe": null,
+    "rule": "One meaning is one setting key; two keys of the same type with the same stem or label are duplicates.",
+    "fixtures": {
+      "bad": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-duplicate-semantic-key/bad",
+      "good": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-duplicate-semantic-key/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "settings-ungated-toggle",
+    "tier": "blocker",
+    "gate": "settings-audit",
+    "staticRule": "ungated-toggle",
+    "runtimeProbe": null,
+    "rule": "A checkbox toggle must be read inside a condition somewhere in the theme.",
+    "fixtures": {
+      "bad": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-ungated-toggle/bad",
+      "good": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-ungated-toggle/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "settings-handle-unresolved",
+    "tier": "blocker",
+    "gate": "settings-audit",
+    "staticRule": "handle-unresolved",
+    "runtimeProbe": null,
+    "rule": "A page, collection, blog or link_list default handle must resolve (match the configured value or a known-handles list).",
+    "fixtures": {
+      "bad": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-handle-unresolved/bad",
+      "good": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-handle-unresolved/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "settings-text-typed-number",
+    "tier": "blocker",
+    "gate": "settings-audit",
+    "staticRule": "text-typed-number",
+    "runtimeProbe": null,
+    "rule": "A text setting with a numeric default that Liquid uses arithmetically must be a numeric-capable type.",
+    "fixtures": {
+      "bad": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-text-typed-number/bad",
+      "good": "C:/Users/Admin/.claude/skills/haravan-settings-schema/scripts/test/fixtures/rules/settings-text-typed-number/good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "variant-without-image-id",
+    "tier": "warn",
+    "gate": "readiness",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "Every colour variant of every product has a featured image and the colours do not share one image.",
+    "fixtures": {
+      "bad": "../HaravanDemoKit/test/fixtures/readiness/variant-image-bad",
+      "good": "../HaravanDemoKit/test/fixtures/readiness/variant-image-good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "empty-size-guide-page",
+    "tier": "warn",
+    "gate": "readiness",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "The size-guide page has real content (table, list, image or heading) above the minimum text length.",
+    "fixtures": {
+      "bad": "../HaravanDemoKit/test/fixtures/readiness/size-guide-bad",
+      "good": "../HaravanDemoKit/test/fixtures/readiness/size-guide-good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "swatch-name-unresolved",
+    "tier": "warn",
+    "gate": "readiness",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "Every demo colour option value resolves in the swatch colour setting.",
+    "fixtures": {
+      "bad": "../HaravanDemoKit/test/fixtures/readiness/swatch-name-bad",
+      "good": "../HaravanDemoKit/test/fixtures/readiness/swatch-name-good"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "wrong-root-receipt",
+    "tier": "warn",
+    "gate": "receipt",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "A QA receipt counts only when its workspaceRoot equals the theme root.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/receipts/wrong-root",
+      "good": "test/fixtures/qa/receipts/pass"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "zero-coverage",
+    "tier": "warn",
+    "gate": "receipt",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "QA coverage must reach the floor of expected screen and width cells.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/receipts/zero-coverage",
+      "good": "test/fixtures/qa/receipts/pass"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "stale-receipt",
+    "tier": "warn",
+    "gate": "receipt",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "A receipt older than the newest theme file does not count.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/receipts/stale",
+      "good": "test/fixtures/qa/receipts/pass"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "degraded-run",
+    "tier": "warn",
+    "gate": "receipt",
+    "staticRule": null,
+    "runtimeProbe": null,
+    "rule": "A degraded or incomplete QA run is unmeasured, never passed.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/receipts/degraded",
+      "good": "test/fixtures/qa/receipts/pass"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "min-font-size",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "min-font-size",
+    "rule": "Rendered text below thresholds.minTextPx at the checked widths.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/min-font-size-bad.html",
+      "good": "test/fixtures/qa/min-font-size-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "control-height-band",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "control-height-band",
+    "rule": "Same-role interactive controls that share one parent render at one height.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/control-height-band-bad.html",
+      "good": "test/fixtures/qa/control-height-band-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "wrapped-label",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "wrapped-label",
+    "rule": "A button or tab label must not wrap onto several lines.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/wrapped-label-bad.html",
+      "good": "test/fixtures/qa/wrapped-label-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "tap-target-hit-area",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "tap-target-hit-area",
+    "rule": "A tap target's hit area (pseudo-element included) is at least thresholds.minTapHitPx on both sides.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/tap-target-hit-area-bad.html",
+      "good": "test/fixtures/qa/tap-target-hit-area-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "invisible-click-blocker",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "invisible-click-blocker",
+    "rule": "No invisible element may sit above a visible interactive control.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/invisible-click-blocker-bad.html",
+      "good": "test/fixtures/qa/invisible-click-blocker-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "timed-popup-occluder",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "timed-popup-occluder",
+    "rule": "A timed popup must not occlude content and must be dismissible.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/timed-popup-occluder-bad.html",
+      "good": "test/fixtures/qa/timed-popup-occluder-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "sticky-released-occluder",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "sticky-released-occluder",
+    "rule": "A sticky or fixed element that is no longer stuck must not be reported as an occluder.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/sticky-released-occluder-bad.html",
+      "good": "test/fixtures/qa/sticky-released-occluder-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "text-overlap",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "text-overlap",
+    "rule": "Visible text must not be painted over other visible text; decorative aria-hidden text is excluded.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/text-overlap-bad.html",
+      "good": "test/fixtures/qa/text-overlap-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  },
+  {
+    "slug": "overlay-close-failed",
+    "tier": "warn",
+    "gate": "probe",
+    "staticRule": null,
+    "runtimeProbe": "overlay-close",
+    "rule": "An opened overlay must close via Escape (dispatched to the page) or an in-panel close control; a full-viewport backdrop is graded only as the backdrop method.",
+    "fixtures": {
+      "bad": "test/fixtures/qa/overlay-close-failed-bad.html",
+      "good": "test/fixtures/qa/overlay-close-failed-good.html"
+    },
+    "origin": "sky-fashion toolchain review 2026-10"
+  }
+]

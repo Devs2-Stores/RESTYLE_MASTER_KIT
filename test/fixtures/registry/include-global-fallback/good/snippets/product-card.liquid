@@ -1,0 +1,4 @@
+{%- assign card_product = product-card -%}
+{%- if card_product != blank and card_product != empty -%}
+  <a class="card" href="{{ card_product.url }}">{{ card_product.title | escape }}</a>
+{%- endif -%}

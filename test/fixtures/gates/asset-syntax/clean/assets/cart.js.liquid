@@ -1,0 +1,16 @@
+var themeConfig = {{ settings.config | json }};
+var shopName = "{{ shop.name }}";
+var label = `Giỏ hàng của {{ shop.name }}`;
+{% assign limit = settings.cart_limit | default: 5 %}
+{% if settings.enable_cart_notes %}
+const notesEnabled = true;
+{% elsif settings.legacy_notes %}
+const notesEnabled = 'legacy';
+{% else %}
+const notesEnabled = false;
+{% endif %}
+{% comment %}this ) ( is never rendered{% endcomment %}
+{% capture unused %}) (( not code{% endcapture %}
+{% for item in cart.items %}
+console.log({{ item.id }}, notesEnabled, limit, themeConfig, shopName, label);
+{% endfor %}

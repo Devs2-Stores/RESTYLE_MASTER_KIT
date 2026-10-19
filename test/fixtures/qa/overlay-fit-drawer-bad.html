@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>overlay-fit drawer bad</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:16px/1.5 Arial,sans-serif;color:#111;background:#fff;overflow-x:hidden}
+.btn{display:inline-block;height:44px;border:1px solid #111;background:#fff;color:#111;font:16px/1.5 Arial,sans-serif;padding:0 20px;cursor:pointer}
+.drawer{position:fixed;top:0;right:0;width:300px;height:140vh;background:#fff;border-left:1px solid #111;padding:16px;z-index:30;transform:translateX(110%)}
+.drawer.is-open{transform:none}
+.drawer__close{width:44px;height:44px;border:0;background:#eee;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<main style="padding:24px"><h1>Cart</h1><button class="btn" type="button" data-action="open-panel">Open cart</button></main>
+<aside class="drawer" id="drawer" aria-label="Cart"><h2>Cart</h2><p>Drawer taller than the viewport.</p><button class="drawer__close" type="button" data-action="close-panel" aria-label="Close">✕</button></aside>
+<script>
+var drawer=document.getElementById('drawer');
+document.addEventListener('click',function(e){var a=e.target.closest('[data-action]');if(!a)return;var v=a.getAttribute('data-action');if(v==='open-panel')drawer.classList.add('is-open');if(v==='close-panel')drawer.classList.remove('is-open')});
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{%- assign swatch_hex = '' -%}
+{%- assign swatch_slug = swatch_value | handleize -%}
+{%- assign swatch_pairs = settings.filter_colors | split: ',' -%}
+{%- for swatch_pair in swatch_pairs -%}
+  {%- assign swatch_kv = swatch_pair | split: ':' -%}
+  {%- assign swatch_name = swatch_kv[0] | strip | handleize -%}
+  {%- if swatch_name == swatch_slug -%}
+    {%- assign swatch_hex = swatch_kv[1] | strip -%}
+  {%- endif -%}
+{%- endfor -%}

@@ -1,0 +1,313 @@
+{%- assign card_product = product -%}
+{%- if card_product == blank -%}
+  {%- assign card_product = product-card -%}
+{%- endif -%}
+{%- if card_product and card_product != empty -%}
+  {%- assign sky_variant = card_product.selected_or_first_available_variant -%}
+  {%- if sky_variant == blank and card_product.variants != blank and card_product.variants.size > 0 -%}
+    {%- assign sky_variant = card_product.variants.first -%}
+  {%- endif -%}
+  {%- assign sky_price = sky_variant.price | default: card_product.price | plus: 0 -%}
+  {%- assign sky_compare = sky_variant.compare_at_price | default: card_product.compare_at_price_max | plus: 0 -%}
+  {%- assign sky_sale_rate = 0 -%}
+  {%- if sky_price > 0 and sky_compare > sky_price -%}
+    {%- assign sky_sale_rate = sky_compare | minus: sky_price | times: 100 | divided_by: sky_compare | round -%}
+  {%- endif -%}
+
+  {%- assign card_lazyload = lazyload -%}
+  {%- if card_lazyload == blank -%}
+    {%- assign card_lazyload = 'lazy' -%}
+  {%- endif -%}
+
+  {%- assign card_show_vendor = true -%}
+  {%- if show_vendor == false -%}
+    {%- assign card_show_vendor = false -%}
+  {%- endif -%}
+
+  {%- assign sky_alt = card_product.featured_image.alt -%}
+  {%- if sky_alt == blank -%}
+    {%- assign sky_alt = card_product.title -%}
+  {%- endif -%}
+
+  {%- assign sky_second_img = nil -%}
+  {%- if settings.sky_card_hover_image_enable and card_product.images != blank and card_product.images.size > 1 -%}
+    {%- assign sky_second_img = card_product.images[1] -%}
+  {%- endif -%}
+
+  {%- assign sky_material_tag = '' -%}
+  {%- assign sky_custom_badge = '' -%}
+  {%- assign sky_is_new = false -%}
+  {%- if card_product.tags != blank -%}
+    {%- for tag in card_product.tags limit: 20 -%}
+      {%- assign tag_low = tag | downcase | strip -%}
+      {%- if sky_material_tag == '' -%}
+        {%- if tag_low contains 'chất liệu:' or tag_low contains 'chat lieu:' or tag_low contains 'material:' -%}
+          {%- assign sky_material_tag = tag | split: ':' | last | strip -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- if sky_custom_badge == '' -%}
+        {%- if tag_low contains 'nhãn:' or tag_low contains 'nhan:' or tag_low contains 'badge:' -%}
+          {%- assign sky_custom_badge = tag | split: ':' | last | strip -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- if tag_low == 'mới' or tag_low == 'moi' or tag_low == 'new' or tag_low == 'hang-moi' or tag_low == 'new-arrival' -%}
+        {%- assign sky_is_new = true -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  {%- assign sky_vendor_label = sky_material_tag -%}
+  {%- if sky_vendor_label == '' and card_product.type != blank -%}
+    {%- assign sky_vendor_label = card_product.type -%}
+  {%- endif -%}
+  {%- if sky_vendor_label == '' and card_product.vendor != blank -%}
+    {%- assign sky_vendor_label = card_product.vendor -%}
+  {%- endif -%}
+
+  {%- assign sky_color_idx = -1 -%}
+  {%- if settings.sky_card_swatches_enable and card_product.options != blank and card_product.variants != blank and card_product.variants.size > 1 -%}
+    {%- for opt in card_product.options limit: 3 -%}
+      {%- assign opt_low = opt | downcase | strip -%}
+      {%- if opt_low contains 'màu' or opt_low contains 'mau' or opt_low contains 'color' or opt_low contains 'colour' -%}
+        {%- assign sky_color_idx = forloop.index0 -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endif -%}
+
+  <product-card
+    class="sky-product-card product-card{% if sky_second_img %} sky-product-card--has-hover-image{% endif %}{% unless card_product.available %} sky-product-card--soldout{% endunless %}"
+    data-product-handle="{{ card_product.handle | escape }}"
+    data-product-id="{{ card_product.id | escape }}"
+    {% if card_product.tags != blank and card_product.tags.size > 0 %}data-tags="{{ card_product.tags | join: ',' | downcase | escape }}"{% endif %}
+  >
+    <article class="sky-product-card__inner">
+      <div class="sky-product-card__media-wrap">
+        <a
+          class="sky-product-card__media"
+          href="{{ card_product.url | escape }}"
+          aria-label="{{ card_product.title | escape }}"
+          data-card-link
+        >
+          <span class="sky-product-card__image-frame">
+            {%- if card_product.featured_image != blank -%}
+              <img
+                class="sky-product-card__image"
+                src="{{ card_product.featured_image | img_url: 'grande' | escape }}"
+                alt="{{ sky_alt | escape }}"
+                loading="{{ card_lazyload | escape }}"
+                {% if fetchpriority == 'high' %}fetchpriority="high"{% endif %}
+                decoding="async"
+                width="600"
+                height="800"
+                data-main-image
+              >
+              {%- if sky_second_img != blank -%}
+                <img
+                  class="sky-product-card__image sky-product-card__image--hover"
+                  src="{{ sky_second_img | img_url: 'grande' | escape }}"
+                  alt="{{ sky_second_img.alt | default: sky_alt | escape }}"
+                  loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="800"
+                >
+              {%- endif -%}
+            {%- else -%}
+              <span class="sky-product-card__placeholder" aria-hidden="true">
+                {%- include 'icon', name: 'hanger', size: 40 -%}
+              </span>
+            {%- endif -%}
+          </span>
+
+          <span class="sky-product-card__badges">
+            {%- if card_product.available == false -%}
+              {%- if settings.sky_card_soldout_text != blank -%}
+                <span class="sky-badge sky-badge--soldout sky-product-card__badge" setting-id="sky_card_soldout_text" setting-type="text">{{ settings.sky_card_soldout_text | escape }}</span>
+              {%- endif -%}
+            {%- elsif sky_sale_rate > 0 -%}
+              <span class="sky-badge sky-badge--sale sky-product-card__badge">-{{ sky_sale_rate }}%</span>
+            {%- endif -%}
+
+            {%- if card_product.available and sky_is_new -%}
+              {%- if settings.sky_card_new_badge_text != blank -%}
+                <span class="sky-badge sky-badge--new sky-product-card__badge" setting-id="sky_card_new_badge_text" setting-type="text">{{ settings.sky_card_new_badge_text | escape }}</span>
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if card_product.available and sky_custom_badge != blank -%}
+              <span class="sky-badge sky-badge--outline sky-product-card__badge">{{ sky_custom_badge | escape }}</span>
+            {%- endif -%}
+          </span>
+        </a>
+
+        <div class="sky-product-card__tools" role="group" aria-label="{{ card_product.title | escape }}">
+          {%- if settings.sky_wishlist_enable and settings.sky_card_wishlist_enable -%}
+            <button
+              type="button"
+              class="sky-product-card__tool sky-product-card__tool--wishlist"
+              data-action="add-wishlist"
+              data-product-id="{{ card_product.id | escape }}"
+              data-product-handle="{{ card_product.handle | escape }}"
+              aria-label="Yêu thích {{ card_product.title | escape }}"
+              title="Yêu thích"
+            >
+              {%- include 'icon', name: 'heart', size: 18 -%}
+            </button>
+          {%- endif -%}
+
+          {%- if settings.sky_card_quickview_enable -%}
+            <button
+              type="button"
+              class="sky-product-card__tool sky-product-card__tool--quickview"
+              data-action="open-quickview"
+              data-product-handle="{{ card_product.handle | escape }}"
+              aria-label="Xem nhanh {{ card_product.title | escape }}"
+              title="Xem nhanh"
+            >
+              {%- include 'icon', name: 'eye', size: 18 -%}
+            </button>
+          {%- endif -%}
+
+          {%- if settings.sky_compare_enable and settings.sky_card_compare_enable -%}
+            <button
+              type="button"
+              class="sky-product-card__tool sky-product-card__tool--compare"
+              data-action="add-compare"
+              data-product-id="{{ card_product.id | escape }}"
+              data-product-handle="{{ card_product.handle | escape }}"
+              aria-label="So sánh {{ card_product.title | escape }}"
+              title="So sánh"
+            >
+              {%- include 'icon', name: 'compare', size: 18 -%}
+            </button>
+          {%- endif -%}
+        </div>
+
+        {%- if card_product.available and sky_price > 0 and settings.sky_card_quick_add_enable -%}
+          <div class="sky-product-card__quickadd-bar">
+            <button
+              type="button"
+              class="sky-btn sky-btn--primary sky-btn--sm sky-btn--full sky-product-card__quickadd-btn"
+              data-action="quick-add"
+              data-variant-id="{{ sky_variant.id | escape }}"
+              aria-label="Thêm vào giỏ {{ card_product.title | escape }}"
+            >
+              {%- include 'icon', name: 'bag', size: 15 -%}
+              {%- if settings.sky_card_quick_add_text != blank -%}
+                <span setting-id="sky_card_quick_add_text" setting-type="text">{{ settings.sky_card_quick_add_text | escape }}</span>
+              {%- endif -%}
+              <span class="sky-product-card__spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="sky-product-card__content">
+        {%- if sky_color_idx >= 0 -%}
+          {%- assign sky_seen_colors = '|' -%}
+          {%- assign sky_swatch_count = 0 -%}
+          {%- assign sky_extra_swatches = 0 -%}
+          <div class="sky-product-card__swatches" role="group" aria-label="Màu sắc {{ card_product.title | escape }}">
+            {%- for var_item in card_product.variants -%}
+              {%- assign var_color = '' -%}
+              {%- if sky_color_idx == 0 -%}
+                {%- assign var_color = var_item.option1 -%}
+              {%- elsif sky_color_idx == 1 -%}
+                {%- assign var_color = var_item.option2 -%}
+              {%- elsif sky_color_idx == 2 -%}
+                {%- assign var_color = var_item.option3 -%}
+              {%- endif -%}
+              {%- assign var_color_key = var_color | downcase | strip -%}
+              {%- capture color_token -%}|{{ var_color_key }}|{%- endcapture -%}
+              {%- if var_color != blank and sky_seen_colors contains color_token == false -%}
+                {%- capture sky_seen_colors -%}{{ sky_seen_colors }}{{ var_color_key }}|{%- endcapture -%}
+                {%- assign sky_swatch_count = sky_swatch_count | plus: 1 -%}
+                {%- if sky_swatch_count <= 5 -%}
+                  {%- assign v_image = var_item.image | default: var_item.featured_image -%}
+                  {%- assign v_img_url = '' -%}
+                  {%- if v_image != blank -%}
+                    {%- assign v_img_url = v_image | img_url: 'grande' -%}
+                  {%- elsif card_product.featured_image != blank -%}
+                    {%- assign v_img_url = card_product.featured_image | img_url: 'grande' -%}
+                  {%- endif -%}
+                  {%- assign swatch_hex = '#E5E7EB' -%}
+                  {%- if var_color_key contains 'trắng' or var_color_key contains 'trang' or var_color_key contains 'white' or var_color_key contains 'kem' or var_color_key contains 'ivory' -%}
+                    {%- assign swatch_hex = '#FFFFFF' -%}
+                  {%- elsif var_color_key contains 'đen' or var_color_key contains 'den' or var_color_key contains 'black' -%}
+                    {%- assign swatch_hex = '#111418' -%}
+                  {%- elsif var_color_key contains 'navy' or var_color_key contains 'xanh đậm' or var_color_key contains 'xanh đen' -%}
+                    {%- assign swatch_hex = '#1E293B' -%}
+                  {%- elsif var_color_key contains 'xanh rêu' or var_color_key contains 'olive' or var_color_key contains 'xanh lá' -%}
+                    {%- assign swatch_hex = '#6B7B5C' -%}
+                  {%- elsif var_color_key contains 'xanh' or var_color_key contains 'sky' or var_color_key contains 'blue' or var_color_key contains 'pastel' -%}
+                    {%- assign swatch_hex = '#B7D3EB' -%}
+                  {%- elsif var_color_key contains 'be' or var_color_key contains 'beige' or var_color_key contains 'nude' or var_color_key contains 'cát' -%}
+                    {%- assign swatch_hex = '#D7C4B7' -%}
+                  {%- elsif var_color_key contains 'nâu' or var_color_key contains 'nau' or var_color_key contains 'camel' or var_color_key contains 'brown' or var_color_key contains 'cafe' -%}
+                    {%- assign swatch_hex = '#8B6B4E' -%}
+                  {%- elsif var_color_key contains 'ghi' or var_color_key contains 'xám' or var_color_key contains 'xam' or var_color_key contains 'grey' or var_color_key contains 'gray' -%}
+                    {%- assign swatch_hex = '#949699' -%}
+                  {%- elsif var_color_key contains 'hồng' or var_color_key contains 'hong' or var_color_key contains 'pink' or var_color_key contains 'rose' -%}
+                    {%- assign swatch_hex = '#E8C5C8' -%}
+                  {%- elsif var_color_key contains 'đỏ' or var_color_key contains 'do' or var_color_key contains 'red' or var_color_key contains 'burgundy' -%}
+                    {%- assign swatch_hex = '#A62639' -%}
+                  {%- elsif var_color_key contains 'vàng' or var_color_key contains 'yellow' or var_color_key contains 'mustard' or var_color_key contains 'gold' -%}
+                    {%- assign swatch_hex = '#E5C878' -%}
+                  {%- endif -%}
+                  <a
+                    href="{{ card_product.url | escape }}?variant={{ var_item.id | escape }}"
+                    class="sky-product-card__swatch{% if sky_swatch_count == 1 %} is-active{% endif %}{% unless var_item.available %} is-soldout{% endunless %}"
+                    data-card-swatch
+                    data-variant-id="{{ var_item.id | escape }}"
+                    data-variant-url="{{ card_product.url | escape }}?variant={{ var_item.id | escape }}"
+                    {% if v_img_url != blank %}data-variant-image="{{ v_img_url | escape }}"{% endif %}
+                    data-variant-buyable="{% if var_item.available and var_item.price > 0 %}true{% else %}false{% endif %}"
+                    data-color-name="{{ var_color | escape }}"
+                    title="{{ var_color | escape }}"
+                    aria-label="Màu {{ var_color | escape }}"
+                    style="--swatch-bg: {{ swatch_hex }};"
+                  >
+                    <span class="visually-hidden">{{ var_color | escape }}</span>
+                  </a>
+                {%- else -%}
+                  {%- assign sky_extra_swatches = sky_extra_swatches | plus: 1 -%}
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+            {%- if sky_extra_swatches > 0 -%}
+              <a class="sky-product-card__swatch-more" href="{{ card_product.url | escape }}" aria-label="Xem thêm {{ sky_extra_swatches }} màu">+{{ sky_extra_swatches }}</a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- if card_show_vendor and settings.sky_card_show_vendor and sky_vendor_label != blank -%}
+          <div class="sky-product-card__meta">
+            <span class="sky-product-card__vendor">{{ sky_vendor_label | escape }}</span>
+          </div>
+        {%- endif -%}
+
+        <h3 class="sky-product-card__title product-card__title">
+          <a class="sky-product-card__title-link" href="{{ card_product.url | escape }}" data-card-link>{{ card_product.title | escape }}</a>
+        </h3>
+
+        <div class="sky-product-card__footer">
+          <div class="sky-price sky-product-card__price">
+            {%- if sky_price == 0 -%}
+              {%- if settings.sky_card_contact_text != blank -%}
+                <span class="sky-price__current sky-price__contact" data-price="0" setting-id="sky_card_contact_text" setting-type="text">{{ settings.sky_card_contact_text | escape }}</span>
+              {%- endif -%}
+            {%- elsif card_product.price_varies -%}
+              <span class="sky-price__current" data-price="{{ card_product.price_min | escape }}">Từ {{ card_product.price_min | money }}</span>
+            {%- else -%}
+              <span class="sky-price__current" data-price="{{ sky_price | escape }}">{{ sky_price | money }}</span>
+              {%- if sky_sale_rate > 0 -%}
+                <del class="sky-price__compare">{{ sky_compare | money }}</del>
+              {%- endif -%}
+            {%- endif -%}
+          </div>
+        </div>
+      </div>
+    </article>
+  </product-card>
+{%- endif -%}

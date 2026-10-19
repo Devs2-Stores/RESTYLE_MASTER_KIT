@@ -1,0 +1,6 @@
+{%- assign featured_product = featured-card -%}
+{%- if featured_product != blank -%}
+  <a href="{{ featured_product.url }}">{{ featured_product.title | escape }}</a>
+{%- endif -%}
+{%- assign shown_title = heading | default: 'Card' -%}
+<h3>{{ shown_title }}</h3>

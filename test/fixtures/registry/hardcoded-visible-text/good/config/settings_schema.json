@@ -1,0 +1,36 @@
+[
+  {
+    "name": "1. Thiết lập chung",
+    "settings": [
+      {
+        "type": "page",
+        "id": "size_guide_page",
+        "label": "Trang bảng quy đổi",
+        "default": "huong-dan-chon-size"
+      }
+    ]
+  },
+  {
+    "name": "2. Chuỗi văn bản",
+    "settings": [
+      {
+        "type": "text",
+        "id": "str_close",
+        "label": "Nhãn nút đóng",
+        "default": "Đóng"
+      },
+      {
+        "type": "text",
+        "id": "str_email_placeholder",
+        "label": "Gợi ý ô email",
+        "default": "Nhập email của bạn"
+      },
+      {
+        "type": "text",
+        "id": "str_size_hint",
+        "label": "Gợi ý chọn size",
+        "default": "Chọn kích cỡ phù hợp"
+      }
+    ]
+  }
+]

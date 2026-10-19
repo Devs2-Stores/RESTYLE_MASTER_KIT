@@ -1,0 +1,10 @@
+{%- assign guide_page = pages[settings.size_guide_page] -%}
+{%- if guide_page != blank and guide_page.content != blank -%}
+  <div class="size-guide">
+    <div class="size-guide__body rte">{{ guide_page.content }}</div>
+    <button type="button" aria-label="{{ settings.str_close | escape }}" title="{{ settings.str_close | escape }}">x</button>
+    <input type="email" name="email" placeholder="{{ settings.str_email_placeholder | escape }}">
+    <p setting-id="str_size_hint" setting-type="text">{{ settings.str_size_hint | escape }}</p>
+    <img src="{{ guide_page.image | img_url: 'large' }}" alt="" width="10" height="10">
+  </div>
+{%- endif -%}

@@ -1,0 +1,13 @@
+[
+  {
+    "name": "1. Thiết lập chung",
+    "settings": [
+      {
+        "type": "textarea",
+        "id": "filter_colors",
+        "label": "Bảng màu swatch (Tên:#mã)",
+        "default": "Đen:#111418,Trắng:#FFFFFF"
+      }
+    ]
+  }
+]

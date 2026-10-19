@@ -1,0 +1,11 @@
+.sky-modal-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 1rem;
+}
+
+.sky-cart-drawer__panel {
+  position: fixed;
+  right: 0;
+  width: 360px;
+}

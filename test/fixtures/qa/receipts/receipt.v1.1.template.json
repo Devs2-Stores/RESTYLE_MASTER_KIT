@@ -1,0 +1,18 @@
+{
+  "receiptVersion": "1.1",
+  "runId": "run-fixture",
+  "attemptId": "attempt-fixture",
+  "annotationId": null,
+  "tabId": "tab-fixture",
+  "documentGeneration": 1,
+  "browserEpoch": 1,
+  "expectedUrl": "https://qa-fixture.myharavan.com/?themeid=1",
+  "observedUrl": "https://qa-fixture.myharavan.com/?themeid=1",
+  "workspaceRoot": "__ROOT__",
+  "verdict": "QA_PASSED",
+  "errorCode": null,
+  "errorMessage": null,
+  "passed": true,
+  "criticalCount": 0,
+  "createdAt": "2026-10-16T08:00:00.000Z"
+}

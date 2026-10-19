@@ -1,0 +1,12 @@
+{%- assign swatch_hex = '' -%}
+{%- assign swatch_slug = swatch_value | handleize -%}
+{%- assign swatch_key = '-' | append: swatch_slug | append: '-' -%}
+{%- if swatch_key contains '-navy-' or swatch_key contains '-xanh-den-' -%}
+  {%- assign swatch_hex = '#1E293B' -%}
+{%- elsif swatch_key contains '-olive-' or swatch_key contains '-xanh-la-' -%}
+  {%- assign swatch_hex = '#556B2F' -%}
+{%- elsif swatch_key contains '-kem-' or swatch_key contains '-cream-' -%}
+  {%- assign swatch_hex = '#F5F0E6' -%}
+{%- elsif swatch_key contains '-den-' or swatch_key contains '-black-' -%}
+  {%- assign swatch_hex = '#111418' -%}
+{%- endif -%}

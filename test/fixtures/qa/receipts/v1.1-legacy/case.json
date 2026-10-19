@@ -1,0 +1,14 @@
+{
+  "description": "v1.1 receipts have no viewport and no execution: they classify but can never cover a cell",
+  "template": "receipt.v1.1.template.json",
+  "root": "theme",
+  "paths": [
+    "/",
+    "/collections/all",
+    "/products/demo-item"
+  ],
+  "widths": [
+    0
+  ],
+  "receiptAge": "fresh"
+}

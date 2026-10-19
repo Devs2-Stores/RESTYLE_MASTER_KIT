@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>overlay-fit scrolled content</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:16px/1.5 Arial,sans-serif;color:#111;background:#fff;overflow-x:hidden}
+.btn{display:inline-block;height:44px;border:1px solid #111;background:#fff;color:#111;font:16px/1.5 Arial,sans-serif;padding:0 20px;cursor:pointer}
+.spacer{height:1400px}
+.card{position:relative;height:120px;margin-top:40px;background:#f3f3f3}
+.card__tools{position:absolute;top:-800px;right:12px;width:44px;height:1600px;background:#ddd}
+.slide{position:absolute;top:1300px;left:100vw;width:320px;height:80px;background:#ccc;transition:none}
+.slide.is-moved{left:180px}
+.panel{position:fixed;top:20px;left:10px;right:10px;background:#fff;border:1px solid #111;padding:16px;z-index:30;display:none;max-height:calc(100vh - 40px);overflow:auto}
+.panel.is-open{display:block}
+.panel__close{width:44px;height:44px;border:0;background:#eee;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<main style="padding:24px">
+<h1>Catalog</h1>
+<div class="spacer"></div>
+<button class="btn" type="button" data-action="open-panel">Quick view</button>
+<div class="card"><button class="card__tools" type="button" aria-label="Tools">+</button></div>
+</main>
+<div class="slide"><a href="#s">Slide</a></div>
+<div class="panel" id="panel" role="dialog" aria-label="Panel"><h2>Panel</h2><p>Content bounded to the viewport.</p><button class="panel__close" type="button" data-action="close-panel" aria-label="Close">✕</button></div>
+<script>
+var panel=document.getElementById('panel');var slide=document.querySelector('.slide');
+document.addEventListener('click',function(e){var a=e.target.closest('[data-action]');if(!a)return;var v=a.getAttribute('data-action');if(v==='open-panel'){panel.classList.add('is-open');slide.classList.add('is-moved')}if(v==='close-panel')panel.classList.remove('is-open')});
+</script>
+</body>
+</html>

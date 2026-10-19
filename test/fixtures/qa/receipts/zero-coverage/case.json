@@ -1,0 +1,13 @@
+{
+  "description": "receipts for the right root cover none of the contract routes",
+  "root": "theme",
+  "paths": [
+    "/unrelated",
+    "/elsewhere"
+  ],
+  "widths": [
+    375,
+    768
+  ],
+  "receiptAge": "fresh"
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>overlay preview chrome</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:16px/1.5 Arial,sans-serif;color:#111;background:#fff}
+.btn{position:fixed;left:16px;bottom:12px;height:44px;border:1px solid #111;background:#fff;color:#111;font:16px/1.5 Arial,sans-serif;padding:0 20px;cursor:pointer}
+#haravan-notification{position:fixed;left:0;right:0;bottom:0;height:72px;background:#222;z-index:9999}
+#haravan-notification a{display:block;height:72px;color:#fff;line-height:72px;padding:0 16px}
+.panel{position:fixed;top:20px;left:10px;right:10px;background:#fff;border:1px solid #111;padding:16px;z-index:30;display:none;max-height:calc(100vh - 40px);overflow:auto}
+.panel.is-open{display:block}
+.panel__close{width:44px;height:44px;border:0;background:#eee;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<main style="padding:24px"><h1>FAQ</h1></main>
+<button class="btn" type="button" data-action="open-panel">Book</button>
+<div id="haravan-notification"><ul class="preview-cta"><li><a href="overlay-fit-good.html?themeid=-1">Remove preview</a></li></ul></div>
+<div class="panel" id="panel" role="dialog" aria-label="Panel"><h2>Booking</h2><p>Content bounded to the viewport.</p><button class="panel__close" type="button" data-action="close-panel" aria-label="Close">✕</button></div>
+<script>
+var panel=document.getElementById('panel');
+document.addEventListener('click',function(e){var a=e.target.closest('[data-action]');if(!a)return;var v=a.getAttribute('data-action');if(v==='open-panel')panel.classList.add('is-open');if(v==='close-panel')panel.classList.remove('is-open')});
+</script>
+</body>
+</html>

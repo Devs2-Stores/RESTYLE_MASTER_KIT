@@ -1,0 +1,43 @@
+[
+  {
+    "name": "1. Thiết lập chung",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "booking_modal_enable",
+        "label": "Bật cửa sổ đặt lịch",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "booking_label",
+        "label": "Nhãn nút đặt lịch",
+        "default": "Đặt lịch"
+      },
+      {
+        "type": "text",
+        "id": "booking_title",
+        "label": "Tiêu đề cửa sổ đặt lịch",
+        "default": "Đặt lịch tư vấn"
+      },
+      {
+        "type": "checkbox",
+        "id": "guide_enable",
+        "label": "Bật hướng dẫn chọn size",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "guide_label",
+        "label": "Nhãn nút hướng dẫn",
+        "default": "Hướng dẫn chọn size"
+      },
+      {
+        "type": "text",
+        "id": "guide_title",
+        "label": "Tiêu đề hướng dẫn",
+        "default": "Bảng quy đổi"
+      }
+    ]
+  }
+]

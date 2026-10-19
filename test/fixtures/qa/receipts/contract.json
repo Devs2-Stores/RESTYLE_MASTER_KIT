@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "project": "qa-gate-fixture",
+  "qaGate": {
+    "widths": [
+      320,
+      375,
+      768,
+      1024,
+      1440
+    ],
+    "coverageFloor": 1
+  },
+  "designDefaults": {
+    "mobileRootFontPx": 14
+  },
+  "screens": [
+    {
+      "name": "shell",
+      "status": "implemented-static",
+      "landmarks": [
+        {
+          "name": "header",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "path": "/",
+      "status": "implemented-static",
+      "landmarks": [
+        {
+          "name": "hero",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "name": "collection",
+      "path": "/collections/all",
+      "status": "implemented-static",
+      "landmarks": [
+        {
+          "name": "grid",
+          "status": "matched"
+        }
+      ]
+    },
+    {
+      "name": "product",
+      "path": "/products/demo-item",
+      "status": "implemented-static",
+      "landmarks": [
+        {
+          "name": "gallery",
+          "status": "matched"
+        }
+      ]
+    }
+  ],
+  "features": [
+    {
+      "name": "mobile-menu",
+      "sourceHooks": [
+        "data-action=open-mobile-menu",
+        "<mobile-menu>"
+      ],
+      "targetHooks": [
+        "layout/theme.liquid::mobile-menu"
+      ],
+      "status": "preserved"
+    },
+    {
+      "name": "cart-drawer",
+      "sourceHooks": [
+        "data-action=open-cart-sidebar",
+        "/cart/add.js"
+      ],
+      "targetHooks": [
+        "layout/theme.liquid::cart"
+      ],
+      "status": "preserved"
+    },
+    {
+      "name": "wishlist",
+      "sourceHooks": [
+        "data-action=add-wishlist"
+      ],
+      "targetHooks": [
+        "layout/theme.liquid::wishlist"
+      ],
+      "status": "preserved"
+    }
+  ]
+}

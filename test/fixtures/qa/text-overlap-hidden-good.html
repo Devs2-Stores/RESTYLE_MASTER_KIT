@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>text-overlap hidden good</title>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:16px/1.5 Arial,sans-serif;color:#111;background:#fff}
+.stage{position:relative;height:360px}
+.stage h2{position:absolute;left:40px;margin:0;font-size:32px;white-space:nowrap}
+.over{position:absolute;left:60px;margin:0;white-space:nowrap;font-size:16px}
+.visually-hidden{width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.clip-path-hidden{width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.hidden-wrapper{width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<main class="stage">
+<h2 style="top:10px">Collection title</h2>
+<span id="vh" class="over visually-hidden" style="top:22px">Skip to main content</span>
+<h2 style="top:90px">Collection title</h2>
+<span id="vh-path" class="over clip-path-hidden" style="top:102px">Screen reader only</span>
+<h2 style="top:170px">Collection title</h2>
+<div id="wrap" class="over hidden-wrapper" style="top:182px"><b>Nested hidden label</b></div>
+<h2 style="top:250px">Collection title</h2>
+<div id="bar" class="over haravan-preview-bar" style="top:262px">Previewing theme 1001</div>
+</main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{%- assign featured_product = featured-card | default: product -%}
+{%- if related-card != blank -%}
+  {%- assign featured_product = related-card -%}
+{%- else -%}
+  {%- assign featured_product = product -%}
+{%- endif -%}
+<a href="{{ featured_product.url }}">{{ featured_product.title | escape }}</a>

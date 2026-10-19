@@ -1,0 +1,13 @@
+{%- if settings.booking_modal_enable and settings.booking_label != blank -%}
+  <button type="button" class="btn" data-action="open-booking-modal">{{ settings.booking_label | escape }}</button>
+{%- endif -%}
+{%- assign can_book = false -%}
+{%- if settings.booking_modal_enable -%}
+  {%- assign can_book = true -%}
+{%- endif -%}
+{%- if can_book -%}
+  <button type="button" class="btn" data-action="open-booking-modal">{{ settings.booking_label | escape }}</button>
+{%- endif -%}
+{%- if settings.guide_enable -%}
+  <button type="button" class="btn" data-guide-trigger>{{ settings.guide_label | escape }}</button>
+{%- endif -%}

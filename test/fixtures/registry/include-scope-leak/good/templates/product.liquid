@@ -1,0 +1,3 @@
+{%- assign block_price = product.price | money -%}
+{%- include 'price-block', price_source: product -%}
+<span class="again">{{ block_price }}</span>

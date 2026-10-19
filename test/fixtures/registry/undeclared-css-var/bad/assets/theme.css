@@ -1,0 +1,4 @@
+.card {
+  color: var(--sky-missing-ink);
+  border: 1px solid var(--sky-missing-line);
+}

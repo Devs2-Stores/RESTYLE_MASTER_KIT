@@ -1,0 +1,23 @@
+:root {
+  --font-xs: 0.875rem;
+}
+
+.badge {
+  font-size: 12px;
+}
+
+.note {
+  font-size: var(--font-xs);
+}
+
+.tag {
+  font-size: 1rem;
+}
+
+.visually-hidden-text {
+  font-size: 0;
+}
+
+.relative {
+  font-size: 0.8em;
+}

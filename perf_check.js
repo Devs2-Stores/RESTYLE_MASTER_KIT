@@ -153,7 +153,7 @@ function buildReport(args, current, baseline, baselineDiff, lighthouse) {
 
 function main() {
   const args = parseArgs(process.argv);
-  if (args.help) { usage(); process.exit(0); }
+  if (args.help) { usage(); return 0; }
   fs.mkdirSync(args.out, { recursive: true });
 
   const assets = listAssets(args.root);
@@ -163,7 +163,7 @@ function main() {
   let baseline = null;
   let baselineDiff = [];
   if (args.baseline) {
-    if (!fs.existsSync(args.baseline)) { console.error(`baseline not found: ${args.baseline}`); process.exit(1); }
+    if (!fs.existsSync(args.baseline)) { console.error(`baseline not found: ${args.baseline}`); return 1; }
     baseline = JSON.parse(fs.readFileSync(args.baseline, 'utf8'));
     baselineDiff = diffBaseline(current, baseline);
   }
@@ -174,7 +174,7 @@ function main() {
 
   let lighthouse = [];
   if (args.lighthouse) {
-    if (!args.base || !args.paths.length) { console.error('--lighthouse requires --base and --paths'); process.exit(1); }
+    if (!args.base || !args.paths.length) { console.error('--lighthouse requires --base and --paths'); return 1; }
     for (const p of args.paths) {
       const url = args.base.replace(/\/+$/, '') + (p.startsWith('/') ? p : '/' + p);
       console.log(`\n>> lighthouse ${url}`);
@@ -195,6 +195,12 @@ function main() {
     }
   }
   console.log(`Output: ${args.out}`);
+  return 0;
 }
 
-try { main(); } catch (e) { console.error('ERROR: ' + e.message); process.exit(1); }
+try {
+  process.exitCode = main() ?? 0;
+} catch (e) {
+  console.error('ERROR: ' + e.message);
+  process.exitCode = 1;
+}

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "rows": [
+    { "slug": "export-default", "ids": ["U-KIT-01"], "priority": "P0", "owner": "kit", "packet": "P4", "status": "open" },
+    { "slug": "seed-pile", "ids": ["U-DK-04"], "priority": "P2", "owner": "demokit", "packet": "P3", "status": "declined", "reason": "" },
+    { "slug": "cdn-urls", "ids": ["U-TH-07"], "priority": "P1", "owner": "theme", "packet": "P6", "status": "approval-pending" },
+    { "slug": "export-default", "ids": ["U-KIT-02"], "priority": "P0", "owner": "kit", "packet": "P4", "status": "fixed" },
+    { "slug": "Bad_Slug", "ids": ["U-KIT-01"], "priority": "P3", "owner": "", "packet": "P4", "status": "wontfix" }
+  ]
+}
