@@ -1,0 +1,12 @@
+[
+  {
+    "id": "target-lacks-phrase",
+    "file": "target.md",
+    "mustContain": [
+      "state_matrix"
+    ],
+    "mustNotContain": [
+      "build-strict"
+    ]
+  }
+]

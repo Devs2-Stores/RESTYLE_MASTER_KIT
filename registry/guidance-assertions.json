@@ -1,0 +1,124 @@
+[
+  {
+    "id": "agents-partners-create-update-approval",
+    "file": "WS/AGENTS.md",
+    "mustContain": ["Partners"],
+    "mustMatch": [
+      "Partners[^\\n]*Create[^\\n]*Update|Partners[^\\n]*Update[^\\n]*Create",
+      "(Create|Update)[^\\n]*(approval|approve|duyệt|xác nhận)|(approval|approve|duyệt|xác nhận)[^\\n]*(Create|Update)"
+    ]
+  },
+  {
+    "id": "agents-qa-debt",
+    "file": "WS/AGENTS.md",
+    "mustContain": ["QA-debt"]
+  },
+  {
+    "id": "themes-claude-qa-gate-and-scale",
+    "file": "WS/themes/CLAUDE.md",
+    "mustContain": ["include scope", "QA-debt", "12px", "24px", "qa_gate"]
+  },
+  {
+    "id": "theme-qa-az-capability-names",
+    "files": ["SC/theme-qa-az/SKILL.md", "SC/theme-qa-az/references/qa-checklist-a-to-z.md"],
+    "mustContain": [
+      "build-strict",
+      "state_matrix",
+      "batch_matrix",
+      "visual_quality",
+      "workspaceRoot",
+      "coverage-floor",
+      "sync:wait",
+      "not found in catalogue"
+    ]
+  },
+  {
+    "id": "proof-gate-settle-and-certification",
+    "file": "SM/haravan-storefront-qa-proof-gate/SKILL.md",
+    "mustContain": ["SETTLE_INCOMPLETE", "CERTIFIED"]
+  },
+  {
+    "id": "verdict-qualification-settle-and-certification",
+    "file": "SM/antifan-qa-verdict-qualification/SKILL.md",
+    "mustContain": ["SETTLE_INCOMPLETE", "CERTIFIED"]
+  },
+  {
+    "id": "haravan-router-rows",
+    "file": "SC/haravan/SKILL.md",
+    "mustContain": [
+      "final-showcase",
+      "haravan-partners-theme-submit",
+      "ai-image-studio",
+      "haravan-demo-data-audit",
+      "haravan-settings-key-live-audit",
+      "haravan-demo-kit"
+    ],
+    "mustNotContain": ["ak-ai-multimodal-native"],
+    "mustMatch": ["[Mm]obile|di động"]
+  },
+  {
+    "id": "haravan-audit-no-hardcoded-fallback",
+    "file": "SC/haravan-audit/SKILL.md",
+    "mustNotContain": ["need not become settings automatically", "`| default:` for optional settings"]
+  },
+  {
+    "id": "liquid-cheatsheet-include-leak-and-https",
+    "file": "SC/haravan-theme/references/liquid-cheatsheet.md",
+    "mustNotContain": ["tuyệt đối không sửa thêm `https:`"],
+    "mustMatch": ["[Ii]nclude[^\\n]*(leak|rò rỉ)|(leak|rò rỉ)[^\\n]*[Ii]nclude"]
+  },
+  {
+    "id": "stitch-overnight-envelope",
+    "file": "SC/haravan-stitch-full-run/references/one-command-workflow.md",
+    "mustContain": ["approved-final", "local ZIP", "showcase capture", "Partners Create/Update", "haravan/hrv CLI", "theme push", "settings_data.json", "commands ran", "commands not run"],
+    "mustMatch": [
+      "Allowed in overnight[^\\n]*approved-final[^\\n]*local ZIP[^\\n]*showcase capture",
+      "Denied[^\\n]*Partners Create/Update[^\\n]*theme push[^\\n]*settings_data\\.json",
+      "Denied[^\\n]*`haravan`/`hrv` CLI",
+      "^(?![\\s\\S]*Allowed in overnight[^\\n]*(Partners|theme push|hrv|settings_data))"
+    ]
+  },
+  {
+    "id": "stitch-skill-envelope-deny-list",
+    "file": "SC/haravan-stitch-full-run/SKILL.md",
+    "mustContain": ["approved-final", "local ZIP", "showcase capture"],
+    "mustMatch": ["Partners Create/Update[^\\n]*`haravan`/`hrv` CLI[^\\n]*theme push[^\\n]*settings_data\\.json[^\\n]*denied"]
+  },
+  {
+    "id": "stitch-checkpoint-envelope",
+    "file": "SC/haravan-stitch-full-run/references/checkpoint-policy.md",
+    "mustContain": ["commands ran", "commands not run", "Partners Create/Update"],
+    "mustMatch": ["Overnight envelope[^\\n]*local steps only[^\\n]*Partners Create/Update[^\\n]*stay denied"]
+  },
+  {
+    "id": "stitch-master-prompt-gates",
+    "file": "K/NEW_THEME_MASTER_PROMPT.md",
+    "mustContain": ["Design Gate", "deliverables/reference", "HOME_SECTION_BUDGET", "asset_syntax_check", "Skills phải đọc", "slice receipt", "commands ran", "commands not run"],
+    "mustMatch": [
+      "Cho phép[^\\n]*approved-final[^\\n]*local ZIP[^\\n]*showcase capture",
+      "Cấm tuyệt đối[^\\n]*Partners Create/Update[^\\n]*`haravan`/`hrv` CLI[^\\n]*theme push[^\\n]*settings_data\\.json"
+    ]
+  },
+  {
+    "id": "stitch-phase-guide-gates",
+    "file": "SC/haravan-stitch-full-run/references/implementation-phase-guide.md",
+    "mustContain": ["Phase 0 Design Gate", "DESIGN_GATE_MISSING", "HOME_SECTION_BUDGET", "gate:asset-syntax", "Skills phải đọc", "slice receipt"]
+  },
+  {
+    "id": "stitch-no-removed-image-providers",
+    "files": [
+      "SC/haravan-stitch-full-run/SKILL.md",
+      "SC/haravan-stitch-full-run/references/implementation-phase-guide.md",
+      "SC/haravan-stitch-full-run/references/one-command-workflow.md",
+      "SC/haravan-stitch-full-run/references/new-theme-master-prompt.md",
+      "SC/haravan-stitch-full-run/references/support-skill-routing.md",
+      "SC/haravan-stitch-full-run/references/workspace-and-environment.md"
+    ],
+    "mustNotContain": ["ai-artist", "ak-ai-multimodal", "GEMINI_API_KEY"]
+  },
+  {
+    "id": "final-showcase-pre-showcase-gate",
+    "file": "SC/final-showcase/SKILL.md",
+    "mustContain": ["gate:pre-showcase"]
+  }
+]

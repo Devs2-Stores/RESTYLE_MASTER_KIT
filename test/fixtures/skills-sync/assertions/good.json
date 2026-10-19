@@ -1,0 +1,15 @@
+[
+  {
+    "id": "target-has-phrases",
+    "file": "target.md",
+    "mustContain": [
+      "build-strict"
+    ],
+    "mustNotContain": [
+      "forbidden phrase"
+    ],
+    "mustMatch": [
+      "Partners[^\\n]*Create/Update"
+    ]
+  }
+]

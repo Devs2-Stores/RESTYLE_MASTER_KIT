@@ -1,0 +1,8 @@
+[
+  {
+    "skill": "shopify",
+    "mirrorRoot": "~/.agents/skills",
+    "file": "SKILL.md",
+    "reason": "agents copy is the separate 'shopify' skill; canonical is 'ck:shopify'"
+  }
+]

@@ -1,0 +1,9 @@
+[
+  {
+    "id": "file-absent",
+    "file": "absent.md",
+    "mustNotContain": [
+      "x"
+    ]
+  }
+]
