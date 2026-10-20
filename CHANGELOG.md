@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.12.1 - 2026-10-20
+
+- **`lib/receipt-audit.js`**: content index chỉ giữ mtime cũ cho file có bytes không đổi khi không có receipt nào được ghi giữa lần kiểm tra trước và mtime hiện tại. Trước đây chuỗi sửa A → B → chạy QA → trả về A làm receipt đo B được tính là còn mới. Index lên `version: 2` (thêm `checkedAtMs`); index cũ được coi như chưa có.
+- **`.gitignore`**: giữ lại fixture `test/mock-theme/.haravan-cli_local.json` (shop/theme id giả); thiếu file này thì test `stitch_pipeline_runner execute` hỏng trên bản checkout sạch.
+
 ## 2.12.0 - 2026-10-20
 
 Bỏ ngưỡng 44px cho control/vùng chạm mobile (quyết định của user). Còn lại: chữ ≥ 12px, vùng chạm ≥ 24px (WCAG 2.2 SC 2.5.8), control cùng vai trò trong một hàng cao bằng nhau.

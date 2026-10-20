@@ -1,6 +1,6 @@
 ﻿# RESTYLE_MASTER_KIT
 
-**Version:** 2.12.0
+**Version:** 2.12.1
 
 Bộ khung canonical để chạy dự án Haravan theme restyle từ đầu đến cuối.
 Kit bao gồm workflow docs, audit scripts, QA automation, và final export tooling.

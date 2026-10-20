@@ -1,6 +1,6 @@
 {
   "name": "haravan-restyle-master-kit",
-  "version": "2.12.0",
+  "version": "2.12.1",
   "private": true,
   "description": "Canonical helper scripts for Haravan theme restyle workflow.",
   "type": "commonjs",

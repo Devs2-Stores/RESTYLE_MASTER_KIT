@@ -196,6 +196,20 @@ async function main() {
   fs.utimesSync(cssFile, later, later);
   const afterContent = gateReceipts(touchOnly);
   check('receipts pass then a touched file changes bytes: exit 1 RECEIPT_STALE', afterContent.status === 1 && afterContent.codes.includes('RECEIPT_STALE'));
+  const reverted = materialize('pass');
+  check('receipts pass seeds the index before an edit-and-revert', gateReceipts(reverted).status === 0);
+  const revertCss = path.join(reverted.root, 'assets', 'theme.css');
+  const originalCss = fs.readFileSync(revertCss);
+  const editedAt = new Date(Date.now() + 5 * 60 * 1000);
+  fs.appendFileSync(revertCss, '\n.qa-measured-variant { color: red; }\n');
+  fs.utimesSync(revertCss, editedAt, editedAt);
+  const measuredAt = new Date(editedAt.getTime() + 60 * 1000);
+  for (const name of fs.readdirSync(reverted.receiptsDir)) fs.utimesSync(path.join(reverted.receiptsDir, name), measuredAt, measuredAt);
+  fs.writeFileSync(revertCss, originalCss);
+  const revertedAt = new Date(measuredAt.getTime() + 60 * 1000);
+  fs.utimesSync(revertCss, revertedAt, revertedAt);
+  const afterRevert = gateReceipts(reverted);
+  check('receipts measured edited bytes, then the file reverts to indexed bytes: exit 1 RECEIPT_STALE', afterRevert.status === 1 && afterRevert.codes.includes('RECEIPT_STALE'));
 
   const degraded = gateReceipts(materialize('degraded'));
   check('receipts degraded: exit 1 with RECEIPT_DEGRADED', degraded.status === 1 && degraded.codes.includes('RECEIPT_DEGRADED'));

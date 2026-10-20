@@ -10,4 +10,5 @@ NUL
 .claude/
 .git-nested/
 .haravan-cli_*.json
+!test/mock-theme/.haravan-cli_local.json
 *.har

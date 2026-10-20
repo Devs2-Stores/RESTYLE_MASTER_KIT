@@ -1,6 +1,6 @@
 # Restyle Master Kit
 
-KIT_VERSION: 2.12.0
+KIT_VERSION: 2.12.1
 
 Đây là bộ khung canonical để bắt đầu một dự án Haravan theme mới.
 
